@@ -374,7 +374,7 @@ def box_overlap(box_a: np.ndarray, box_b: np.ndarray):
             cnt += 1
 
     if cnt < 3:
-        assert cnt == 0
+        # assert cnt == 0
         return 0.0
 
     poly_center /= cnt
