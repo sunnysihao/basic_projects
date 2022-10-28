@@ -604,46 +604,41 @@ def write_json(in_path: str, check_file: str):
                         count_l.append(label)
 
                         if label == 'Virtual_box':
-
-                            box_data = {
-                                "name": label,
-                                "bbox_center": [x, y, z],
-                                "bbox_size": [nx, ny, nz],
-                                "heading": alpha
-                            }
-                            annotations.append(box_data)
-                            count_box += 1
+                            continue
 
                         else:
                             wide = label_mapping[f'{label}']
                             point_num = count_points_in_3dbox(box_border, points)
+                            if complement:
+                                box_data = {
+                                    "name": label,
+                                    "bbox_center": [x, y, z],
+                                    "bbox_size": [nx, ny, nz],
+                                    "heading": alpha,
+                                    "complement": complement,
+                                    "id": int_id,
+                                    "pkg_id": data_id
+                                }
+                                annotations.append(box_data)
+                                count_box += 1
 
-                            if point_num < wide:
-                                border_err_str = f"作业ID:{data_id}-第{frame_number}帧-{int_id}号框点数({point_num})不符合要求"
-                                marking_error.append(border_err_str)
-                                box_data = {
-                                    "name": label,
-                                    "bbox_center": [x, y, z],
-                                    "bbox_size": [nx, ny, nz],
-                                    "heading": alpha,
-                                    "complement": complement,
-                                    "id": int_id,
-                                    "pkg_id": data_id
-                                }
-                                annotations.append(box_data)
-                                count_box += 1
                             else:
-                                box_data = {
-                                    "name": label,
-                                    "bbox_center": [x, y, z],
-                                    "bbox_size": [nx, ny, nz],
-                                    "heading": alpha,
-                                    "complement": complement,
-                                    "id": int_id,
-                                    "pkg_id": data_id
-                                }
-                                annotations.append(box_data)
-                                count_box += 1
+                                if point_num < wide:
+                                    border_err_str = f"作业ID:{data_id}-第{frame_number}帧-{int_id}号框点数({point_num})不符合要求"
+                                    marking_error.append(border_err_str)
+                                    continue
+                                else:
+                                    box_data = {
+                                        "name": label,
+                                        "bbox_center": [x, y, z],
+                                        "bbox_size": [nx, ny, nz],
+                                        "heading": alpha,
+                                        "complement": complement,
+                                        "id": int_id,
+                                        "pkg_id": data_id
+                                    }
+                                    annotations.append(box_data)
+                                    count_box += 1
 
                         box_7 = [x, y, z, nx, ny, nz, alpha]
                         boxes_l.append(box_7)
