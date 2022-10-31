@@ -52,13 +52,14 @@ def get_points(bin_file: str, which_fields: str, data_type: str):
         points = np.frombuffer(bin_data, dtype=dtype)
         points = [list(o) for o in points]
         points = np.array(points)
-        return points
+        filter_points = points[~np.isnan(points[:, :3]).any(axis=1)]
+        return filter_points
 
 
 # 将点数据写入pcd文件(encoding=ascii)
 def bin_to_pcd(bin_file: str):
-    which_fields = "x,y,z,i"
-    data_type = "float32,float32,float32,float32"
+    which_fields = "x,y,z,i,t"
+    data_type = "float32,float32,float32,float32,float32"
     file = os.path.basename(bin_file)
     result_path = os.path.join(os.path.dirname(os.path.dirname(bin_file)), 'pcd_files')
     if not os.path.exists(result_path):
@@ -114,6 +115,6 @@ def multi_thread(bin_dir):
 
 if __name__ == "__main__":
     t1 = time.time()
-    bin_dir = r"D:\Desktop\BasicProject\胡婷\Cartev\Cartev"
+    bin_dir = r"D:\Desktop\Project file\郭章程\point\point_4"
     multi_thread(bin_dir)
     print(time.time() - t1)
