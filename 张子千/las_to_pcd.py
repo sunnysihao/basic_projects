@@ -49,7 +49,7 @@ def load_las_points(las_file):
 
 
 def write_pcd(pcd_file, points):
-    points = np.array(points)
+    points = np.array(points, dtype=np.float64)
 
     with open(pcd_file, 'w', encoding='ascii') as pcd_file:
         point_num = points.shape[0]
@@ -57,7 +57,7 @@ def write_pcd(pcd_file, points):
             '# .PCD v0.7 - Point Cloud Data file format',
             'VERSION 0.7',
             'FIELDS x y z i',
-            'SIZE 4 4 4 4',
+            'SIZE 8 8 8 4',
             'TYPE F F F F',
             'COUNT 1 1 1 1',
             f'WIDTH {point_num}',
@@ -86,7 +86,7 @@ def save_pcd(in_path):
 
 
 if __name__ == '__main__':
-    # in_path = r'D:\Desktop\BasicProject\张子千\M4143G1'
-    in_path = input("请输入las文件路径:\n")
+    in_path = r'D:\Desktop\Project file\张子千\M4143G1\las'
+    # in_path = input("请输入las文件路径:\n")
     save_pcd(in_path)
     input("已完成，按任意键退出")

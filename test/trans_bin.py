@@ -115,6 +115,6 @@ def multi_thread(bin_dir):
 
 if __name__ == "__main__":
     t1 = time.time()
-    bin_dir = r"D:\Desktop\Project file\郭章程\point\point_4"
+    bin_dir = r"D:\Desktop\Project file\郭章程\point\3d_url"
     multi_thread(bin_dir)
     print(time.time() - t1)
