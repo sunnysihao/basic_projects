@@ -239,7 +239,7 @@ def load_pc_data(pcd_file):
     # from time import time
     # start = time()
     pc = PointCloud(pcd_file)
-    points = pc.numpy(dtype=np.float64)
+    points = pc.numpy(dtype=np.float32)
     return points
 
 if __name__ == '__main__':
