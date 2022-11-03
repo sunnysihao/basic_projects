@@ -19,7 +19,7 @@ class_mapping = {
 
 
 
-las=laspy.read(r"D:\Desktop\Project file\胡婷\Lone_Drone\新建文件夹\Merged Millwood Park - Cloud_01 - Cloud.las")
+las=laspy.read(r"D:\Desktop\Project file\胡婷\Lone_Drone\新建文件夹\Park.las")
 #获取文件头
 header=las.header
 #点类型
