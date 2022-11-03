@@ -19,7 +19,7 @@ class_mapping = {
 
 
 
-las=laspy.read(r"D:\Desktop\BasicProject\王满顺\时旭\SX一作业一结果\las_one\19cloud.las")
+las=laspy.read(r"D:\Desktop\Project file\胡婷\Lone_Drone\新建文件夹\Merged Millwood Park - Cloud_01 - Cloud.las")
 #获取文件头
 header=las.header
 #点类型
@@ -43,7 +43,7 @@ ave_z = np.average(las_z)
 las_X=np.array(las.X)
 las_Y= np.array(las.Y)
 las_Z= np.array(las.Z)
-
+las_i= np.array(las.intensity)
 las_r= np.array(las.red)
 las_g= np.array(las.green)
 las_b= np.array(las.blue)

@@ -86,7 +86,12 @@ def save_pcd(in_path):
 
 
 if __name__ == '__main__':
-    in_path = r'D:\Desktop\Project file\张子千\M4143G1\las'
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('in_path', type=str)
+    args = parser.parse_args()
+    in_path = args.in_path
+    # in_path = r'D:\Desktop\Project file\张子千\M4143G1\las'
     # in_path = input("请输入las文件路径:\n")
     save_pcd(in_path)
     input("已完成，按任意键退出")

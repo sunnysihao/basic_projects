@@ -64,56 +64,60 @@ def update_json(json_dir: str, check_file: str):
                 label = box['classType']
                 attrs = box['attrs']
 
-                frame = box['frame']
-                if not attrs:
-                    little_class = "un"
-                    relevance = 'un'
-                    occupied = 'un'
-                    group = 'un'
-                else:
-                    if '小类' in attrs.keys():
-                        little_class = attrs['小类']
-                    elif 'invisible' in attrs.keys():
-                        little_class = attrs['invisible']
-                    else:
+                if -0.1 < rx < 0.1 and -0.1 < ry < 0.1:
+                    if not attrs:
                         little_class = "un"
-                    if 'Relevance' in attrs.keys():
-                        relevance = attrs['Relevance']
-                    else:
                         relevance = 'un'
-                    if 'Occupied' in attrs.keys():
-                        occupied = attrs['Occupied']
-                    else:
                         occupied = 'un'
-                    if 'Group' in attrs.keys():
-                        group = attrs['Group']
-                    else:
                         group = 'un'
+                    else:
+                        if '小类' in attrs.keys():
+                            little_class = attrs['小类']
+                        elif 'invisible' in attrs.keys():
+                            little_class = attrs['invisible']
+                        else:
+                            little_class = "un"
+                        if 'Relevance' in attrs.keys():
+                            relevance = attrs['Relevance']
+                        else:
+                            relevance = 'un'
+                        if 'Occupied' in attrs.keys():
+                            occupied = attrs['Occupied']
+                        else:
+                            occupied = 'un'
+                        if 'Group' in attrs.keys():
+                            group = attrs['Group']
+                        else:
+                            group = 'un'
 
-                one_light = {
-                    "object_id": intid,
-                    "3Dcenter": center3d,
-                    "3Dsize": {
-                        "width": width,
-                        "length": length,
-                        "height": height,
-                        "alpha": alpha,
-                        "rx": rx,
-                        "ry": ry,
-                        "rz": rz
-                    },
-                    "super_class": label,
-                    "class": little_class,
-                    "relevance": relevance,
-                    "occupied": occupied,
-                    "group": group,
-                    "uuid": uuid,
-                    "track_id": track_id,
-                    "data_id": data_id,
-                    "2Dbbox": []
-                }
+                    one_light = {
+                        "object_id": intid,
+                        "3Dcenter": center3d,
+                        "3Dsize": {
+                            "width": width,
+                            "length": length,
+                            "height": height,
+                            "alpha": alpha,
+                            "rx": 0,
+                            "ry": 0,
+                            "rz": rz
+                        },
+                        "super_class": label,
+                        "class": little_class,
+                        "relevance": relevance,
+                        "occupied": occupied,
+                        "group": group,
+                        "uuid": uuid,
+                        "track_id": track_id,
+                        "data_id": data_id,
+                        "2Dbbox": []
+                    }
 
-                id_mapping[track_id] = one_light
+                    id_mapping[track_id] = one_light
+                else:
+                    mark_err_str = f"作业id:{data_id}-{intid}号框旋转角度错误"
+                    detection.append(mark_err_str)
+                    continue
             else:
                 continue
 
@@ -184,14 +188,14 @@ def update_json(json_dir: str, check_file: str):
     }
     if not os.path.exists(check_file):
         with open(check_file, 'w', encoding='utf-8') as df:
-            df.write(json.dumps(detection_info))
+            df.write(json.dumps(detection_info, ensure_ascii=False))
     else:
         with open(check_file, 'r', encoding='utf-8-sig') as f:
             content = f.read()
             detection_content = json.loads(content)
             detection_content['detection_info'] = detection_info
             with open(check_file, 'w', encoding='utf-8') as df:
-                df.write(json.dumps(detection_content))
+                df.write(json.dumps(detection_content, ensure_ascii=False))
 
 
 if __name__ == '__main__':
@@ -204,6 +208,6 @@ if __name__ == '__main__':
 
     json_dir = args.json_dir
     check_file = args.check_file
-    # json_dir = r"C:\Users\EDY\Downloads\HX红绿灯\first_20220916.zip - 副本"
-    # check_file = r"C:\Users\EDY\Downloads\HX红绿灯\first_20220916.zip - 副本\check file.txt"
+    # json_dir = r"C:\Users\EDY\Downloads\下载结果_json_43957_109376_20221017110119\third_20220927.zip\third_20220927 - 副本"
+    # check_file = r"C:\Users\EDY\Downloads\下载结果_json_43957_109376_20221017110119\third_20220927.zip\third_20220927 - 副本\check file.json"
     update_json(json_dir, check_file)
