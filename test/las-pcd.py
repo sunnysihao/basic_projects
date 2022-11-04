@@ -2,6 +2,13 @@
 # @Time : 2022/11/2
 # @Author : zhangsihao@basicfinder.com
 """
+功能:las转pcd工具，可选需要的字段，如颜色值(rgb)、强度(i)，默认只包含坐标(x,y,z)
+使用方法:
+    python las-pcd.py <las_files_dir> --pcd_dir <save_pcd_dir> --fields x y z rgb i --huge_coordinate_value True
+可选参数:
+    --pcd_dir # 保存pcd文件的路径，默认为 "las_file_dir" 同级的 "pcd_files" 路径下
+    --fields # 字段名 rgb 和 i 为可选项，默认为 x y z
+    --huge_coordinate_value # 坐标值是否达到百万级，默认为False, 若为True，则x,y坐标均减去各自均值进行处理
 """
 import os
 import laspy
@@ -26,7 +33,7 @@ class LasToPcd:
     def __init__(self, las_dir: str, pcd_dir=None, fields=['x', 'y', 'z'], huge_coordinate_values=False):
         self.las_dir = las_dir
         if pcd_dir is None:
-            self.pcd_dir = os.path.join(os.path.dirname(self.las_dir), '3d_url')
+            self.pcd_dir = os.path.join(os.path.dirname(self.las_dir), 'pcd_files')
             if not os.path.exists(self.pcd_dir):
                 os.mkdir(self.pcd_dir)
         else:
@@ -64,7 +71,7 @@ class LasToPcd:
         las_y = np.array(las.y, dtype=np.float32)
         y = las_y - np.average(las_y)
         las_z = np.array(las.z, dtype=np.float32)
-        z = las_z - np.average(las_z)
+        z = las_z
         las_r = np.array(las.red)
         las_g = np.array(las.green)
         las_b = np.array(las.blue)
@@ -142,6 +149,7 @@ class LasToPcd:
             file_name = os.path.splitext(os.path.basename(file))[0]
             pcd_file = os.path.join(self.pcd_dir, file_name + '.pcd')
             self.write_pcd(pcd_file, points)
+
 
 def main():
     import argparse
