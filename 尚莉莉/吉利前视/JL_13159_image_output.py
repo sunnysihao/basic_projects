@@ -91,10 +91,8 @@ def jl_output(json_dir: str, check_file: str):
                                 point_label = 'Left-Front'
                             elif opoint_label in ['Light-Front(右前)', 'Right-Front(右前)']:
                                 point_label = 'Right-Front'
-                            elif opoint_label == 'Left-Rear(左后)':
-                                point_label = 'Left-Rear'
                             else:
-                                point_label = 'Right-Rear'
+                                point_label = opoint_label
 
                             point_group = ''
                             for pk, pv in point_mapping.items():

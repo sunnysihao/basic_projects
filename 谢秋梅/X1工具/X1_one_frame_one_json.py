@@ -53,7 +53,10 @@ def split_folder(result_file: str):
                         for box in boxes:
                             obj_type = box['objType']
                             if obj_type == '3d':
-                                label = box['classType']
+                                try:
+                                    label = box['classType']
+                                except:
+                                    print(results)
                                 try:
                                     track_id = box['trackId']
                                     view_index = box['viewIndex']
@@ -102,8 +105,8 @@ def split_folder(result_file: str):
         cf.write(json.dumps(check_content, ensure_ascii=False))
 
 if __name__ == '__main__':
-    result_file = input("Please enter the path of the JSON file exported by the platform\n")
-    # result_file = r"D:\Desktop\BasicProject\谢秋梅\test\야간_비_일반_202709_N01-20221027104637.json"
+    # result_file = input("Please enter the path of the JSON file exported by the platform\n")
+    result_file = r"D:\Desktop\Project file\谢秋梅\주_비_고속_103331_N07영일3-20221102065055.json"
     split_folder(result_file)
     input("***Complete***\nPress any key to exit")
 
