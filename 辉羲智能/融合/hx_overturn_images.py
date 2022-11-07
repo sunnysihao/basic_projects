@@ -99,20 +99,20 @@ def undistortion(image: np.ndarray, intrinsic: np.ndarray, d_coeffs: np.ndarray,
 # new = Image.fromarray(new_a)
 # new.save(r"D:\Desktop\BasicProject\毛岩\恺望\恺望-7v融合&amp;单帧分割5帧试标-20220712\62c2a4a30523b0812bd48a86\images\3d_img0\new2.jpg")   #复原后的图像保存路径
 
-def list_files(in_path: str):
+def list_files(in_path: str, suffix_match):
     file_list = []
     for root, _, files in os.walk(in_path):
         for file in files:
-            if os.path.splitext(file)[-1] == '.jpg':
+            if os.path.splitext(file)[-1] == suffix_match:
                 file_list.append(os.path.join(root, file))
     return file_list
 
 
-def list_files2(in_path):
+def list_files2(in_path, suffix_match):
     file_list = []
     for root, _, files in os.walk(in_path):
         for file in files:
-            if os.path.splitext(file)[-1] == '.jpg':
+            if os.path.splitext(file)[-1] == suffix_match:
                 file_list.append(os.path.splitext(file)[0])
     return file_list
 
@@ -131,7 +131,7 @@ def dir_undis(dir):
     out_path = r"E:\倍赛标注\进行中项目\辉羲智能\23D融合数据\第二批数据1104\od_fusion_6k_1103\output"
     path2 = os.path.join(image_path, dir, dir)
     if dir in ['3d_img3', '3d_img5']:
-        for file in tqdm(list_files(path2), desc=f"{dir}"):
+        for file in tqdm(list_files(path2, '.jpg'), desc=f"{dir}"):
             cam_name = os.path.basename(os.path.dirname(file))
             file_name = os.path.basename(file)
             dst_path = os.path.join(out_path, dir)
@@ -164,8 +164,8 @@ def dir_undis(dir):
             out_arr = new.transpose(Image.ROTATE_180)
             out_arr.save(dst_file)
         # new.save(dst_file)
-    img_names = list_files2(path2)
-    for file in list_files2(pcd_path):
+    img_names = list_files2(path2, '.jpg')
+    for file in list_files2(pcd_path, '.jpg'):
         new_image = os.path.join(path2, file + '.jpg')
         if file not in img_names:
             shutil.copyfile(image, new_image)
