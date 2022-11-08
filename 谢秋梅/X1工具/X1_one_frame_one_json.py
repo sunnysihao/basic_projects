@@ -20,8 +20,9 @@ def load_json(json_file: str):
 
 
 def split_folder(result_file: str):
-    mark_err = []
+    empty_label = []
     no_result = []
+    only_model = []
     check_file = os.path.join(os.path.dirname(result_file), 'check_info.json')
     json_data = load_json(result_file)
     dataset_name = json_data['datasetName']
@@ -51,36 +52,33 @@ def split_folder(result_file: str):
                     for result in results:
                         boxes = result['objects']
                         for box in boxes:
-                            obj_type = box['objType']
-                            if obj_type == '3d':
-                                try:
+                            if 'classType' and 'trackName' in box.keys():
+                                obj_type = box['objType']
+                                if obj_type == '3d':
                                     label = box['classType']
-                                except:
-                                    print(results)
-                                try:
-                                    track_id = box['trackId']
-                                    view_index = box['viewIndex']
                                     track_name = box['trackName']
-                                except:
-                                    continue
-                                if not label:
-                                    no_label_str = f"{dataset_name} / {dir_name} / {file_name}(frame_number:{frame_count}) / object name:{track_name} | No label selected"
-                                    mark_err.append(no_label_str)
-                                    continue
+                                    if not label:
+                                        no_label_str = f"{dataset_name} / {dir_name} / {file_name}(frame_number:{frame_count}) / object name:{track_name} | No label selected"
+                                        empty_label.append(no_label_str)
+                                        continue
+                                    else:
+                                        size = box['size3D']
+                                        center = box['center3D']
+                                        rotation = box['rotation3D']
+                                        box = {
+                                            "Label": label,
+                                            "Data_type": "worker",
+                                            "Type": "Cuboid",
+                                            "position": center,
+                                            "scale": size,
+                                            "rotation": rotation
+                                        }
+                                        annotation.append(box)
                                 else:
-                                    size = box['size3D']
-                                    center = box['center3D']
-                                    rotation = box['rotation3D']
-                                    box = {
-                                        "Label": label,
-                                        "Data_type": "worker",
-                                        "Type": "Cuboid",
-                                        "position": center,
-                                        "scale": size,
-                                        "rotation": rotation
-                                    }
-                                    annotation.append(box)
+                                    continue
                             else:
+                                no_label_str = f"{dataset_name} / {dir_name} / {file_name}(frame_number:{frame_count}) | Only model tags"
+                                only_model.append(no_label_str)
                                 continue
 
                 result_json = {
@@ -98,8 +96,9 @@ def split_folder(result_file: str):
                 with open(save_json_file, 'w', encoding='utf-8') as f:
                     json.dump(result_json, f, ensure_ascii=False)
     check_content = {
-        "marking_errors": mark_err,
-        "empty_label": no_result
+        "No_annotated_results": no_result,
+        "empty_label": empty_label,
+        "Only_model_tags": only_model
     }
     with open(check_file, 'w', encoding='utf-8') as cf:
         cf.write(json.dumps(check_content, ensure_ascii=False))
