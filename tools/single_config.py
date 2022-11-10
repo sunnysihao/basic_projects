@@ -36,5 +36,5 @@ def write_single_config(config_file, x):
         with open(os.path.join(single_config, file + f'-{i}' + '.json'), 'w', encoding='utf-8') as sf:
             sf.write(json.dumps(single_data))
 
-config_file = r"D:\Desktop\BasicProject\季鑫窈\辉曦智能\测试\测试\camera_config\1661987025.0888307.json"
-write_single_config(config_file, 6)
+config_file = r"C:\Users\EDY\Downloads\pilot_Data-20221108T101954Z-001\pilot_Data\sequence_frames_curve_1hz_new\camera_config\310.json"
+write_single_config(config_file, 3)

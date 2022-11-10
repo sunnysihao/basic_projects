@@ -81,20 +81,23 @@ def split_folder(result_file: str):
                                 only_model.append(no_label_str)
                                 continue
 
-                result_json = {
-                    "Source_Image_Info": {
-                        "Pcd_name": file_name + '.pcd',
-                        "Pcd_path": os.path.join(dir_name, file_name + '.pcd'),
-                        "Copyrighter": "(주)미디어그룹사람과숲",
-                        "Time_zone": "",
-                        "Location": "",
-                        "Gps": "",
-                        "Weather": ""
-                    },
-                    "Annotation": annotation
-                }
-                with open(save_json_file, 'w', encoding='utf-8') as f:
-                    json.dump(result_json, f, ensure_ascii=False)
+                if not annotation:
+                    continue
+                else:
+                    result_json = {
+                        "Source_Image_Info": {
+                            "Pcd_name": file_name + '.pcd',
+                            "Pcd_path": os.path.join(dir_name, file_name + '.pcd'),
+                            "Copyrighter": "(주)미디어그룹사람과숲",
+                            "Time_zone": "",
+                            "Location": "",
+                            "Gps": "",
+                            "Weather": ""
+                        },
+                        "Annotation": annotation
+                    }
+                    with open(save_json_file, 'w', encoding='utf-8') as f:
+                        json.dump(result_json, f, ensure_ascii=False)
     check_content = {
         "No_annotated_results": no_result,
         "empty_label": empty_label,
@@ -104,8 +107,8 @@ def split_folder(result_file: str):
         cf.write(json.dumps(check_content, ensure_ascii=False))
 
 if __name__ == '__main__':
-    # result_file = input("Please enter the path of the JSON file exported by the platform\n")
-    result_file = r"D:\Desktop\Project file\谢秋梅\주_비_고속_103331_N07영일3-20221102065055.json"
+    result_file = input("Please enter the path of the JSON file exported by the platform\n")
+    # result_file = r"C:\Users\EDY\Downloads\1. 오류 발생 json 샘플\1. 坷幅 惯积 json 基敲\林_厚_绊加_103331_N09楷林2-20221102065148.json"
     split_folder(result_file)
     input("***Complete***\nPress any key to exit")
 

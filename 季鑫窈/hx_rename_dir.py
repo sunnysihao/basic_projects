@@ -29,13 +29,6 @@ def rename_dir(path):
 
 
 if __name__ == '__main__':
-    import argparse
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('in_path', type=str)
-    args = parser.parse_args()
-    in_path = args.in_path
-
-    # path = r"/tmp/root/model_saas_data/uploadfile/JXY1020 (admin)/mnt/nas/usr/bo.cao/to_anno/send_beisai/fifth_20221018"
+    path = r"/tmp/root//model_saas_data/uploadfile/jxy3 (admin)/mnt/nas/usr/bo.cao/to_anno/send_beisai/third_20220927"
     # path = r"D:\Desktop\9127389"
-    rename_dir(in_path)
+    rename_dir(path)

@@ -39,6 +39,7 @@ def write_new_json(old_json_dir: str, check_file: str):
             abandon = 'yes'
         else:
             abandon = 'no'
+            line_num = 0
             for line in result_data:
                 line_id = line['id']
                 label = line['label']
@@ -84,7 +85,7 @@ def write_new_json(old_json_dir: str, check_file: str):
                         continue
 
                     box = {
-                        "id": line_id, #对象 ID
+                        "id": line_num, #对象 ID
                         "track_id": -1,#预留字段，暂无意义，固定取值为-1
                         "struct_type": "parsing",#标注类型，车道线标注取值为“parsing”
                         "attrs": {   #标注对象属性
@@ -95,9 +96,10 @@ def write_new_json(old_json_dir: str, check_file: str):
                             "double_line": double_line#双线属性
                             },
                         "data": points,
-                        "point_attrs": ["null"]*len(points) # 关键点属性，预留字段，固定取值为 null，数组大小与 data 大小一致。
+                        "point_attrs": [None]*len(points) # 关键点属性，预留字段，固定取值为 null，数组大小与 data 大小一致。
                     }
                     annotation.append(box)
+                    line_num += 1
                 else:
                     lack_attr_err = f"作业id:{data_id}-{int_id}号 | 属性标注不足"
                     mark_error.append(lack_attr_err)

@@ -607,6 +607,10 @@ def write_json(in_path: str, check_file: str):
                             continue
                         else:
                             occlusion = attrs['occlusion']
+                            if occlusion == "true":
+                                occlusion = True
+                            else:
+                                occlusion = False
 
                         if 'truncation' not in attrs.keys():
                             no_attr_str = f"作业ID:{data_id}-{int_id}号框无截断属性"
@@ -614,6 +618,10 @@ def write_json(in_path: str, check_file: str):
                             continue
                         else:
                             truncation = attrs['truncation']
+                            if truncation == "true":
+                                truncation = True
+                            else:
+                                truncation = False
 
                         if 'is_on_road' not in attrs.keys():
                             no_attr_str = f"作业ID:{data_id}-{int_id}号框无截断属性"
@@ -621,6 +629,10 @@ def write_json(in_path: str, check_file: str):
                             continue
                         else:
                             is_on_road = attrs['is_on_road']
+                            if is_on_road == "true":
+                                is_on_road = True
+                            else:
+                                is_on_road = False
 
                         if c_or_t == 'complete_box_size':
                             content = {}
@@ -630,9 +642,9 @@ def write_json(in_path: str, check_file: str):
                                 "z": z
                             }
                             content['size'] = {
-                                "x": nx,
-                                "y": ny,
-                                "z": nz
+                                "length": nx,
+                                "width": ny,
+                                "height": nz
                             }
                             content['heading'] = heading
                             content['type'] = label
@@ -651,9 +663,9 @@ def write_json(in_path: str, check_file: str):
                                 "z": z
                             }
                             content['size'] = {
-                                "x": nx,
-                                "y": ny,
-                                "z": nz
+                                "length": nx,
+                                "width": ny,
+                                "height": nz
                             }
                             content['heading'] = heading
                             content['type'] = label
