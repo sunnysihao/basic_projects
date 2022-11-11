@@ -77,7 +77,7 @@ if __name__ == '__main__':
     # args = parser.parse_args()
     # in_path = args.in_path
 
-    path = r"/tmp/root/model_saas_data/uploadfile/jxy2 (admin)/second_20220919"
+    path = r"/tmp/root/model_saas_data/uploadfile/jxy3 (admin)/orignal/mnt/nas/usr/bo.cao/to_anno/send_beisai/third_20220927"
     save_path = r"/tmp/root/model_saas_data/uploadfile/jxy3 (admin)/third_set2"
     json_file = r"/tmp/root/model_saas_data/uploadfile/jxy3 (admin)/name_list_set3.json"
     rename_dir(path, save_path, json_file)

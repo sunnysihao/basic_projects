@@ -20,5 +20,5 @@ def main(path):
 
 
 if __name__ == '__main__':
-    path = r"/tmp/root/model_saas_data/uploadfile/jxy3 (admin)"
+    path = r"/tmp/root/model_saas_data/uploadfile/jxy3 (admin)/third_set2"
     main(path)
