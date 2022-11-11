@@ -115,16 +115,29 @@ def parse_result(json_file, image_file):
 def main(total_path):
     img_path = os.path.join(total_path, 'img')
     json_path = os.path.join(total_path, 'json')
-    for img_file in tqdm(list_files(img_path, '.jpg')):
-        json_file = img_file.replace(img_path, json_path).replace('.jpg', '.json')
-        exc_json = img_file.replace('.jpg', '.json')
+    match = '.jpg'
+    for img_file in tqdm(list_files(img_path, match)):
+        json_file = img_file.replace(img_path, json_path).replace(match, '.json')
+        exc_json = img_file.replace(match, '.json')
         if not os.path.exists(json_file):
-            data = {}
             print(f"{json_file}不存在")
         else:
             data = parse_result(json_file, img_file)
-        with open(exc_json, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False)
+            with open(exc_json, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False)
+    match2 = '.JPG'
+    for img_file in tqdm(list_files(img_path, match2)):
+        json_file = img_file.replace(img_path, json_path).replace(match, '.json')
+        exc_json = img_file.replace(match, '.json')
+        if not os.path.exists(json_file):
+            print(f"{json_file}不存在")
+        else:
+            data = parse_result(json_file, img_file)
+            with open(exc_json, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False)
+        new_img_file = img_file.replace(match2, ".jpg")
+        os.rename(img_file, new_img_file)
+
 
 
 if __name__ == '__main__':
