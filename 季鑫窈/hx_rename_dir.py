@@ -29,6 +29,6 @@ def rename_dir(path):
 
 
 if __name__ == '__main__':
-    path = r"/tmp/root/model_saas_data/uploadfile/jxy1110 (admin)/mnt/nas/usr/bo.cao/to_anno/send_beisai/7th_20221109"
+    path = r"/tmp/root/model_saas_data/uploadfile/jxy1114 (admin)/mnt/nas/usr/bo.cao/to_anno/send_beisai/8th_20221113"
     # path = r"D:\Desktop\9127389"
     rename_dir(path)
