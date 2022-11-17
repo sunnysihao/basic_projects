@@ -139,7 +139,6 @@ def main(total_path):
         os.rename(img_file, new_img_file)
 
 
-
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description='arg parser')
