@@ -30,6 +30,14 @@ one_label_list = ['Pedestrian', 'Pillar', 'Park-Stop', 'Tire-Rod', 'Park-Lock-OF
 no_group_label = ['Fence', 'Gate-Machine', 'Park-Lock-OFF', 'Park-Lock-ON', 'Water-Horse', 'Auto-Shutter', 'Iron-Gate',
                   'Fire-Extinguisher-Box', 'Advertising-Board', 'Traffic-Signs', 'Hang-Charging-Pile', '3D-Slot-Separate',
                   'Animal', 'Others']
+label_point_mapping = {
+    "Car": ['车辆接地点（四点）（红色可见绿色不可见）', '购物车、婴儿车4轮（四点）', '所有矩形体目标：停车场立柱、落地充电桩、电箱等',
+            '警示牌（4点，红色可见，绿色不可见）', '防撞桶（同石柱）、反光锥', '减速带'],
+    "Pillar": ['车辆接地点（四点）（红色可见绿色不可见）', '购物车、婴儿车4轮（四点）', '所有矩形体目标：停车场立柱、落地充电桩、电箱等',
+            '警示牌（4点，红色可见，绿色不可见）', '防撞桶（同石柱）、反光锥', '减速带'],
+    "Tricycle": ['三轮车（三点）（红色可见，绿色不可见）', '石柱、警示柱（三点）', '石球、圆形垃圾桶（三点）'],
+    "Pedestrian": ['工地手推车、婴儿车3轮（两点）', '行人（两点）', '轮挡、轮胎挡杆']
+}
 
 
 def jl_output(json_dir: str, check_file: str):
@@ -44,16 +52,46 @@ def jl_output(json_dir: str, check_file: str):
         group_info = json_content['result']['groupinfo']
         group_mapping = {}
         point_mapping = {}
+        group_label_mapping = {}
         for info in group_info:
             group_id = info['id']
             group_intid = info['intId']
             child_l = []
+            bonepoint_count = 0
             for child in info['children']:
                 child_id = child['id']
+                child_type = child['type']
                 child_l.append(child_id)
+                if child_type == "bonepoint":
+                    bonepoint_count += 1
             group_mapping[group_intid] = child_l
+            if bonepoint_count > 1:
+                bonepoint_err_str = f"作业id:{data_id}-{group_intid}号编组关键点组数量大于 1"
+                err_list.append(bonepoint_err_str)
 
         boxes = json_content['result']['data']
+
+        for box in boxes:
+            box_id = box['id']
+            box_type = box['type']
+            if box_type == 'rect':
+                if not box['label']:
+                    continue
+                else:
+                    if len(box['label']) == 1 and box['category'][0] in two_label_list:
+                        category = box['category'][0]
+                    elif len(box['label']) == 1 and box['category'][0] in one_label_list:
+                        category = box['category'][0]
+                    else:
+                        continue
+                    if category in ['Car', 'Pillar', 'Tricycle', 'Pedestrian']:
+                        for rk, rv in group_mapping.items():
+                            if box_id in rv:
+                                group_label_mapping[rk] = category
+                            else:
+                                continue
+                    else:
+                        continue
 
         for box in boxes:
             box_id = box['id']
@@ -111,48 +149,62 @@ def jl_output(json_dir: str, check_file: str):
                                 err_list.append(group_err_str)
                                 continue
                             else:
+                                try:
+                                    gl = group_label_mapping[point_group]
+                                    if title not in label_point_mapping[gl]:
+                                        point_check = False
+                                    else:
+                                        point_check = True
+                                except:
+                                    point_check = True
 
-                                fea_point = {
-                                    "type": "Feature",
-                                    "properties": {
-                                        "objectId": point_id,
-                                        "id": point_id,
-                                        "layerId": point_id,
-                                        "content": {
-                                            "label": "Ground-Points",
-                                            "Category": point_label,
-                                            "Visibleproperties": visible
-                                        },
-                                        "ocrContent": {},
-                                        "generateMode": 1,
-                                        "quality": {
-                                            "errorType": {
-                                                "attributeError": [],
-                                                "targetError": [],
-                                                "otherError": ""
+                                if not point_check:
+                                    point_err_str = f"作业id:{data_id}-第{frame}帧-{int_id}号关键点组选择错误"
+                                    err_list.append(point_err_str)
+                                    continue
+                                else:
+
+                                    fea_point = {
+                                        "type": "Feature",
+                                        "properties": {
+                                            "objectId": point_id,
+                                            "id": point_id,
+                                            "layerId": point_id,
+                                            "content": {
+                                                "label": "Ground-Points",
+                                                "Category": point_label,
+                                                "Visibleproperties": visible
                                             },
-                                            "changes": {
-                                                "attribute": [],
-                                                "target": []
+                                            "ocrContent": {},
+                                            "generateMode": 1,
+                                            "quality": {
+                                                "errorType": {
+                                                    "attributeError": [],
+                                                    "targetError": [],
+                                                    "otherError": ""
+                                                },
+                                                "changes": {
+                                                    "attribute": [],
+                                                    "target": []
+                                                },
+                                                "qualityStatus": "unqualified"
                                             },
-                                            "qualityStatus": "unqualified"
+                                            "labelColor": point_color,
+                                            "groups": [
+                                                {
+                                                    "id": point_group,
+                                                    "name": f"组{point_group}"
+                                                }
+                                            ],
+                                            "assembleId": point_group
                                         },
-                                        "labelColor": point_color,
-                                        "groups": [
-                                            {
-                                                "id": point_group,
-                                                "name": f"组{point_group}"
-                                            }
-                                        ],
-                                        "assembleId": point_group
-                                    },
-                                    "title": title,
-                                    "geometry": {
-                                        "type": "Point",
-                                        "coordinates": point_coordinate
+                                        "title": title,
+                                        "geometry": {
+                                            "type": "Point",
+                                            "coordinates": point_coordinate
+                                        }
                                     }
-                                }
-                                features.append(fea_point)
+                                    features.append(fea_point)
 
             elif box_type == 'rect':
                 area = box['area']
@@ -454,13 +506,13 @@ def jl_output(json_dir: str, check_file: str):
     }
     if not os.path.exists(check_file):
         with open(check_file, 'w', encoding='utf-8') as cf:
-            cf.write(json.dumps(check_content))
+            cf.write(json.dumps(check_content, ensure_ascii=False))
     else:
         with open(check_file, 'r', encoding='utf-8-sig') as of:
             of_content = json.loads(of.read())
             of_content["marking_errors"] = check_content
         with open(check_file, 'w', encoding='utf-8') as cf:
-            cf.write(json.dumps(of_content))
+            cf.write(json.dumps(of_content, ensure_ascii=False))
 
 
 
@@ -503,7 +555,6 @@ def count_m(json_dir: str):
 if __name__ == '__main__':
     import argparse
 
-
     parser = argparse.ArgumentParser()
     parser.add_argument('json_dir', type=str)
     parser.add_argument('check_file', type=str)
@@ -512,7 +563,7 @@ if __name__ == '__main__':
     json_dir = args.json_dir
     check_file = args.check_file
 
-    # json_dir = r"C:\Users\EDY\Downloads\吉利前视连续帧\scane_garage_camera_front_1009_afternoon-5 - 副本"
-    # check_file = r"C:\Users\EDY\Downloads\吉利前视连续帧\scane_garage_camera_front_1009_afternoon-5 - 副本\check file.json"
+    # json_dir = r"C:\Users\EDY\Downloads\json_44361_111480_20221118141144\馆陶没做的 - 副本"
+    # check_file = r"C:\Users\EDY\Downloads\json_44361_111480_20221118141144\馆陶没做的 - 副本\check file.json"
     jl_output(json_dir, check_file)
     # print(count_m(json_dir))

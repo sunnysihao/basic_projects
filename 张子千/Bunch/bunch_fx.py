@@ -3,11 +3,6 @@
 # @Author : zhangsihao@basicfinder.com
 """
 """
-# -*- coding: utf-8 -*-
-# @Time : 2022/11/10
-# @Author : zhangsihao@basicfinder.com
-"""
-"""
 import os
 import json
 import uuid
@@ -38,7 +33,7 @@ def load_txt(txt_file):
 
 def parse_result(txt_file):
     content = load_txt(txt_file)
-    file_name = os.path.basename(txt_file)
+    file_name = os.path.splitext(os.path.basename(txt_file))[0] + '.png'
     iw, ih = 1920, 1080
     result_data = []
     int_id = 1
