@@ -7,58 +7,32 @@ from tqdm import tqdm
 import time
 
 
-def get_txtdata(txt_path: str):
-    data_list = []
-    with open(txt_path, encoding='utf-8') as f:
-        lines = f.readlines()
-        for li in lines:
-            data_list.append(li.strip("\n").strip("[").strip("]").split(","))
-        camera_external = data_list[0:3]
-        camera_external = np.asarray(camera_external, dtype=float)
-        t = data_list[3:4]
-        t = np.asarray(t, dtype=float).reshape((3, 1))
-        ext = np.hstack((camera_external, t))
-        tian = np.asarray([[0, 0, 0, 1]])
-        cam_ext = np.vstack((ext, tian))
-        #cam_ext = inv(cam_ext)
-        cam_ext = cam_ext.T
-        cam_ext = cam_ext.tolist()
-        cam_ext_new = []
-        for i in range(len(cam_ext)):
-            for k in cam_ext[i]:
-                cam_ext_new.append(k)
-        camera_internal = data_list[-3:]
-        camera_internal = np.asarray(camera_internal, dtype=float)
+def get_txtdata(json_file):
+    ext_r = np.array([[-0.01535546, -0.99984817, 0.00823677],
+                        [0.02280838, -0.00858586, -0.99970299],
+                        [0.99962192, -0.01516303, 0.02293675]])
+    ext_t = np.array([-0.0651113, -0.37164303, 0.14304646]).reshape((3, 1))
+    ext = np.hstack((ext_r, ext_t))
+    tian = np.array([0, 0, 0, 1])
+    cam_ext = np.vstack((ext, tian))
+    # cam_ext = inv(cam_ext)
+    # cam_ext = cam_ext.T
+    # cam_ext = cam_ext.tolist()
+    cam_ext_new = cam_ext.flatten().tolist()
 
     data = {
         "3d_img0": {
             "camera_internal": {
-                "fx": float(camera_internal[0][0]),
-                "cx": float(camera_internal[0][2]),
-                "cy": float(camera_internal[1][2]),
-                "fy": float(camera_internal[1][1])
+                "fx": 640.039533950044,
+                "cx": 245.216833076302,
+                "cy": 189.067845636845,
+                "fy": 645.069442501087
             },
-            "camera_external": cam_ext_new,
-            "width": 416,
-            "height": 416,
-            "box_type": "plane"
-            },
-        "3d_img1": {
-            "camera_internal": {
-                "fx": float(camera_internal[0][0]),
-                "cx": float(camera_internal[0][2]),
-                "cy": float(camera_internal[1][2]),
-                "fy": float(camera_internal[1][1])
-            },
-            "camera_external": cam_ext_new,
-            "width": 416,
-            "height": 416,
-            "box_type": "plane"
-        }
+            "camera_external": cam_ext_new
+            }
     }
-    # data["3d_img0"]["camera_external"] = list(map(float,data["3d_img0"]["camera_external"]))
-    # data["3d_img1"]["camera_external"] = list(map(float, data["3d_img1"]["camera_external"]))
-    return data
+    with open(json_file, 'w', encoding='utf-8') as f:
+        json.dump(data, f)
 
 
 def txt2json(name_path: str, to_dir: str):
@@ -66,16 +40,15 @@ def txt2json(name_path: str, to_dir: str):
     for root, _, file_names in os.walk(name_path):
         for png_file in tqdm(file_names, desc="数据写入进度", unit='file', ncols=100):
             time.sleep(0.5)
-            to_path = os.path.join(to_dir, os.path.splitext(png_file)[0])
-            with open(to_path+".json", "+a", encoding='utf-8') as f:
-                f.write(json.dumps(get_txtdata(txt_path)))
+            json_file = os.path.join(to_dir, os.path.splitext(png_file)[0] + '.json')
+            get_txtdata(json_file)
 
 
 if __name__ == "__main__":
 
     print("start")
-    txt_path = r"D:\Basic\5.12修改内外参数\data_test2(1)_result-2\data_select10\激光雷达-RGB标定结果.txt"
-    name_path = r"D:\Basic\5.12修改内外参数\data_test2(1)_result-2\data_select10\3d_img0"
-    to_dir = r"D:\Basic\5.12修改内外参数\data_test2(1)_result-2\data_select10\camera_config"
+    txt_path = r"D:\Desktop\Project_file\王满顺\同济大学\新建文件夹\新建文件夹\激光雷达-RGB标定结果.txt"
+    name_path = r"D:\Desktop\Project_file\王满顺\同济大学\新建文件夹\新建文件夹\3d_img0"
+    to_dir = r"D:\Desktop\Project_file\王满顺\同济大学\新建文件夹\新建文件夹\camera_config"
     get_txtdata(txt_path)
     txt2json(name_path, to_dir)

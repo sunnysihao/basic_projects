@@ -1,5 +1,4 @@
 # _*_ coding=: utf-8 _*_
-# _*_ coding=: utf-8 _*_
 import os
 import json
 from numpy.linalg import inv
