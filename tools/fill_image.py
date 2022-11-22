@@ -1,4 +1,7 @@
 # _*_ coding=: utf-8 _*_
+"""
+将图片以空白填充为指定分辨率
+"""
 import os.path
 from PIL import Image
 
