@@ -8,7 +8,7 @@ import os
 from tqdm import tqdm
 import json
 import shutil
-import uuid
+from nanoid import generate
 
 
 def list_files(in_path: str, match):
@@ -36,9 +36,20 @@ def copy_file(ori_path, out_path, dir_name, final_dir, file_name, suffix):
     shutil.copyfile(ori_file, new_file)
 
 
+cam_map = {
+    "J": 0,
+    "I": 1,
+    "G": 2,
+    "H": 3,
+    "E": 4,
+    "F": 5
+}
+
+
 def write_json(in_path, frame_count):
     ori_json_path = os.path.join(in_path, 'label')
-    ori_pcd_path = os.path.join(in_path, 'pcd')
+    ori_pcd_path = os.path.join(in_path, '3d_url')
+    ori_cfg_path = os.path.join(in_path, 'camera_config')
     out_path = os.path.join(os.path.dirname(in_path), 'upload_files')
     if not os.path.exists(out_path):
         os.mkdir(out_path)
@@ -54,38 +65,97 @@ def write_json(in_path, frame_count):
         for file in tqdm(set_file):
             file_name = os.path.splitext(os.path.basename(file))[0]
             copy_file(ori_pcd_path, out_path, dir_name, '3d_url', file_name, '.pcd')
+            copy_file(ori_cfg_path, out_path, dir_name, 'camera_config', file_name, '.json')
             for fd in ['3d_img0', '3d_img1', '3d_img2', '3d_img3', '3d_img4', '3d_img5']:
-                copy_file(ori_pcd_path, out_path, dir_name, fd, file_name, '.png')
+                ori_img_path = os.path.join(in_path, fd)
+                copy_file(ori_img_path, out_path, dir_name, fd, file_name, '.png')
 
             jc = load_json(file)
-            for obj in jc:
+            cuboids = jc['frames']
+            rects = jc['images']
+            for obj in cuboids:
                 track_name = box_num
                 box_num += 1
-                track_id = str(uuid.uuid3(uuid.NAMESPACE_DNS, str(track_name)))
-                psr = obj['psr']
-                center = psr['position']
-                rotation = psr['rotation']
-                size = psr['scale']
-                label = obj['obj_type']
-                degree = obj['flag']
+                track_id = generate(size=16)
+                length, width, height = obj['size']
+                rz = obj['theta']
+                x, y, z = obj['vehicle_coord']
 
                 box = {
                     "objType": "3d",
                     "trackId": track_id,
                     "trackName": track_name,
-                    "center3D": center,
-                    "rotation3D": rotation,
-                    "size3D": size,
-                    "classType": label,
-                    "attrs": {
-                        "degree": degree
+                    "center3D": {
+                        "x": x,
+                        "y": y,
+                        "z": z
                     },
+                    "rotation3D": {
+                        "x": 0,
+                        "y": 0,
+                        "z": rz
+                    },
+                    "size3D": {
+                        "x": length,
+                        "y": width,
+                        "z": height
+                    },
+                    "classType": '',
+                    "attrs": [],
+                    "frame": frame
+                }
+                result_data.append(box)
+            for rect in rects:
+                track_name = box_num
+                box_num += 1
+                track_id = generate(size=16)
+                cam = rect['cam']
+                h = rect['height']
+                w = rect['width']
+                x = rect['x']
+                y = rect['y']
+
+                box = {
+                    "objType": "rect",
+                    "trackId": track_id,
+                    "trackName": track_name,
+                    "points": [
+                        {"x": x, "y": y},
+                        {"x": x+w, "y": y},
+                        {"x": x+w, "y": y+h},
+                        {"x": x, "y": y+h}
+                    ],
+                    "viewIndex": cam_map[cam],
+                    "center3D": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                    },
+                    "rotation3D": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                    },
+                    "size3D": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                    },
+                    "classType": '',
+                    "attrs": [],
                     "frame": frame
                 }
                 result_data.append(box)
 
             url = {
-                "3d_url": file_name + '.pcd'
+                "3d_url": file_name + '.pcd',
+                "3d_img0": file_name + '.png',
+                "3d_img1": file_name + '.png',
+                "3d_img2": file_name + '.png',
+                "3d_img3": file_name + '.png',
+                "3d_img4": file_name + '.png',
+                "3d_img5": file_name + '.png',
+                "camera_config": file_name + '.json',
             }
             urls.append(url)
             frame += 1
@@ -112,5 +182,5 @@ def write_json(in_path, frame_count):
 
 
 if __name__ == '__main__':
-    in_path = r"D:\Desktop\Project_file\郭章程\雷达\雷达"
+    in_path = r"D:\Desktop\Project_file\郭章程\纽劢\4D-sample\4D-sample"
     write_json(in_path, 10)

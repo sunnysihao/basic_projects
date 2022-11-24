@@ -39,9 +39,53 @@ attr_mapping = {
 }
 
 
-def trans_json(in_path):
+def is_stationary(in_path):
+    center_map = {}
+    stationary_map = {}
+    cl = []
+    for file in tqdm(list_files(in_path, '.json')):
+        jc = load_json(file)
+        data_id = jc['data_id']
+        boxes = jc['result']['data']
+        for box in boxes:
+            class_type = box['classType']
+            if class_type == '标注类型':
+                frame = box['frame']
+                track_id = box['trackId']
+                box_name = box['trackName']
+                # if track_id in ['YP6FSWzXgnO69QWf', 'HOaVlXKjTsRlt_97']:
+                #     print(f"{frame} {box_name}")
+
+                center = box['center3D']
+                point = center.values()
+                if point in cl:
+                    print(f"{frame} {box_name}")
+                    continue
+                else:
+                    cl.append(point)
+                if track_id not in center_map.keys():
+                    center_map[track_id] = [center.values()]
+                else:
+                    center_map[track_id].append(center.values())
+            else:
+                continue
+    for k, v in center_map.items():
+        if len(set(v)) < 2:
+            stationary_map[k] = True
+        else:
+            stationary_map[k] = False
+    for i, j in stationary_map.items():
+        if j:
+            print(i)
+
+def trans_json(in_path, point_json_path):
     mark_err = []
     for file in tqdm(list_files(in_path, '.json')):
+        file_name = os.path.splitext(os.path.basename(file))[0]
+        point_json_file = os.path.join(point_json_path, file_name + '.json')
+        param = load_json(point_json_file)
+        device_x = param['device_position']['x']
+        device_y = param['device_position']['y']
         annotation = []
         jc = load_json(file)
         data_id = jc['data_id']
@@ -56,7 +100,7 @@ def trans_json(in_path):
                 center = box['center3D']
                 x = center['x']
                 y = center['y']
-                distance = math.sqrt(x**2+y**2)
+                distance = math.sqrt((x-device_x)**2+(y-device_y)**2)
                 size = box['size3D']
                 heading = box['rotation3D']['z']
                 point_n = box['pointN']
@@ -78,7 +122,10 @@ def trans_json(in_path):
                         continue
                     for ex in attrs.keys():
                         if ex in attr_mapping.keys():
-                            attributes[attr_mapping[ex]] = attrs[ex]
+                            if attrs[ex] == '不导出标签结果':
+                                continue
+                            else:
+                                attributes[attr_mapping[ex]] = attrs[ex]
                         else:
                             continue
 
@@ -88,7 +135,7 @@ def trans_json(in_path):
                         'position': center,
                         'dimensions': size,
                         'yaw': heading,
-                        'stationary': True,
+                        'stationary': False,
                         'camera_used': 3,
                         'numberOfPoints': point_n,
                         'distance_to_device': distance,
@@ -107,4 +154,7 @@ def trans_json(in_path):
 
 if __name__ == '__main__':
     in_path = r"C:\Users\EDY\Downloads\json_44247_110745_20221122165544\wshh-测试数据\3d_url - 副本"
-    trans_json(in_path)
+    pount_json_path = r"D:\Desktop\Project_file\王满顺\文思海辉\test_data_cuboids\test_data_cuboids"
+    trans_json(in_path, pount_json_path)
+
+    # is_stationary(in_path)

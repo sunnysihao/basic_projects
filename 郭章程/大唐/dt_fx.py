@@ -26,13 +26,29 @@ def load_json(json_file: str):
     return json_content
 
 
+def create_config_file(camera_config_file: str, view_num: int):
+    one_data = {
+        "camera_internal": {
+            "fx": 1295,
+            "cx": 973,
+            "cy": 570,
+            "fy": 1296
+        },
+        "camera_external": [1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0]
+    }
+    data = {}
+    for i in range(view_num):
+        data[f"3d_img{i}"] = one_data
+    with open(camera_config_file, 'w', encoding='utf-8') as f:
+        f.write(json.dumps(data))
 
 
 def write_json(in_path, frame_count):
     id_info = []
     ori_json_path = os.path.join(in_path, 'label')
-    ori_pcd_path = os.path.join(in_path, 'pcd')
-    out_path = os.path.join(os.path.dirname(in_path), 'upload_files')
+    ori_pcd_path = os.path.join(in_path, 'point')
+    ori_img_path = os.path.join(in_path, 'img')
+    out_path = os.path.join(in_path, 'upload_files')
     if not os.path.exists(out_path):
         os.mkdir(out_path)
     set = 0
@@ -52,6 +68,18 @@ def write_json(in_path, frame_count):
                 os.makedirs(set_pcd_path, exist_ok=True)
             new_pcd_file = os.path.join(set_pcd_path, file_name + '.pcd')
             shutil.copyfile(ori_pcd_file, new_pcd_file)
+            ori_img_file = os.path.join(ori_img_path, file_name + '.jpg')
+            set_img_path = os.path.join(out_path, dir_name, '3d_img0')
+            if not os.path.exists(set_img_path):
+                os.makedirs(set_img_path, exist_ok=True)
+            new_img_file = os.path.join(set_img_path, file_name + '.jpg')
+            shutil.copyfile(ori_img_file, new_img_file)
+            set_cfg_path = os.path.join(out_path, dir_name, 'camera_config')
+            if not os.path.exists(set_cfg_path):
+                os.makedirs(set_cfg_path, exist_ok=True)
+            new_cfg_file = os.path.join(set_cfg_path, file_name + '.json')
+            create_config_file(new_cfg_file, 1)
+
             jc = load_json(file)
             for obj in jc:
                 track_name = box_num
@@ -81,7 +109,9 @@ def write_json(in_path, frame_count):
                 result_data.append(box)
 
             url = {
-                "3d_url": file_name + '.pcd'
+                "3d_url": file_name + '.pcd',
+                "3d_img0": file_name + '.jpg',
+                "camera_config": file_name + '.json'
             }
             urls.append(url)
             frame += 1
@@ -107,13 +137,13 @@ def write_json(in_path, frame_count):
         set += 1
         print(rf"{out_path}\{dir_name}")
 
-    id_info_file = os.path.join(out_path, 'ids_info.json')
-    jc = {
-        "ids": id_info
-    }
-    with open(id_info_file, 'w', encoding='utf-8') as idf:
-        json.dump(jc, idf)
-    print(f"**********反显框保存路径**********\n{id_info_file}")
+    # id_info_file = os.path.join(out_path, 'ids_info.json')
+    # jc = {
+    #     "ids": id_info
+    # }
+    # with open(id_info_file, 'w', encoding='utf-8') as idf:
+    #     json.dump(jc, idf)
+    # print(f"**********反显框保存路径**********\n{id_info_file}")
 
 
 if __name__ == '__main__':
