@@ -8,6 +8,7 @@ import os
 import json
 import shutil
 from nanoid import generate
+from tqdm import tqdm
 
 
 def list_files(in_path: str, match):
@@ -43,11 +44,47 @@ def create_config_file(camera_config_file: str, view_num: int):
         f.write(json.dumps(data))
 
 
+def is_float(src_str):
+    try:
+        float(src_str)
+        r = True
+    except:
+        r = False
+    return r
+
+
+def match_with_timestamp(pcd_folder: str, jpg_folder: str):
+    print("************************************")
+    timestamp_check = True
+    pcd_files = list_files(pcd_folder, '.pcd')
+    for f1 in pcd_files:
+        timestamp_check = is_float(os.path.splitext(os.path.basename(f1))[0])
+    img_file = list_files(jpg_folder, '.jpg')
+    for f2 in img_file:
+        timestamp_check = is_float(os.path.splitext(os.path.basename(f2))[0])
+    if timestamp_check:
+        for pcd_folder in tqdm(pcd_files):
+            pcd_prefix = os.path.splitext(os.path.basename(pcd_folder))[0]
+            dict = {k: eval(pcd_prefix) - eval(os.path.splitext(os.path.basename(k))[0]) for k in img_file}
+            value = 0
+            img_key, diff_val = min(dict.items(), key=lambda x: abs(value - x[1]))
+            src_img = os.path.join(jpg_folder, img_key)
+            new_img_path = os.path.join(os.path.dirname(jpg_folder), 'images')
+            if not os.path.exists(new_img_path):
+                os.makedirs(new_img_path)
+            new_img = os.path.join(new_img_path, pcd_prefix + '.jpg')
+            shutil.copyfile(src_img, new_img)
+    else:
+        print("文件名不符合时间戳格式，无法进行时序对齐")
+
+id_info = []
 def write_json(in_path, frame_count):
-    id_info = []
+    global id_info
     ori_json_path = os.path.join(in_path, 'label')
     ori_pcd_path = os.path.join(in_path, 'point')
-    ori_img_path = os.path.join(in_path, 'img')
+    old_img_path = os.path.join(in_path, 'img')
+    match_with_timestamp(ori_pcd_path, old_img_path)
+    ori_img_path = os.path.join(in_path, 'images')
     out_path = os.path.join(in_path, 'upload_files')
     if not os.path.exists(out_path):
         os.mkdir(out_path)
@@ -137,18 +174,21 @@ def write_json(in_path, frame_count):
         set += 1
         print(rf"{out_path}\{dir_name}")
 
-    # id_info_file = os.path.join(out_path, 'ids_info.json')
-    # jc = {
-    #     "ids": id_info
-    # }
-    # with open(id_info_file, 'w', encoding='utf-8') as idf:
-    #     json.dump(jc, idf)
-    # print(f"**********反显框保存路径**********\n{id_info_file}")
+
 
 
 if __name__ == '__main__':
-    # in_path = r"D:\Desktop\Project_file\郭章程\雷达\雷达"
-    in_path = input("请输入路径:\n")
-    print("*********反显数据保存路径*********")
-    write_json(in_path, 10)
+    i_path = r"D:\Desktop\Project_file\郭章程\大唐\补标数据demo\补标数据demo\成都园区测试场\雷达"
+    # in_path = input("请输入路径:\n")
+    for n in ['1', '2', '3', '4']:
+        in_path = os.path.join(i_path, n)
+        print("*********反显数据保存路径*********")
+        write_json(in_path, 10)
+    id_info_file = os.path.join(i_path, 'ids_info.json')
+    jc = {
+        "ids": id_info
+    }
+    with open(id_info_file, 'w', encoding='utf-8') as idf:
+        json.dump(jc, idf)
+    print(f"**********反显框保存路径**********\n{id_info_file}")
     input("已完成，按任意键退出")

@@ -37,10 +37,10 @@ def save_pcd(pc: np.ndarray, file, binary=True):
         headers = [
             '# .PCD v0.7 - Point Cloud Data file format',
             'VERSION 0.7',
-            'FIELDS x y z',
-            'SIZE 4 4 4',
-            'TYPE F F F',
-            'COUNT 1 1 1',
+            'FIELDS x y z i',
+            'SIZE 4 4 4 4',
+            'TYPE F F F F',
+            'COUNT 1 1 1 1',
             f'WIDTH {num_points}',
             'HEIGHT 1',
             'VIEWPOINT 0 0 0 1 0 0 0',
@@ -57,8 +57,8 @@ def save_pcd(pc: np.ndarray, file, binary=True):
             f.write(pc.tobytes())
         else:
             for i in range(num_points):
-                x, y, z = pc[i]
-                f.write(f"{x:.3f} {y:.3f} {z:.3f}\n")
+                x, y, z, i = pc[i]
+                f.write(f"{x:.3f} {y:.3f} {z:.3f} {i:.3f}\n")
 
 
 def save_pc(json_file, pcd_file):
@@ -68,11 +68,13 @@ def save_pc(json_file, pcd_file):
     x = []
     y = []
     z = []
+    i = []
     for p in j_points:
         x.append(p['x'])
         y.append(p['y'])
         z.append(p['z'])
-    points0 = np.stack([x, y, z], axis=1)
+        i.append(p['i'])
+    points0 = np.stack([x, y, z, i], axis=1)
     points = np.array(points0, dtype=np.float32)
     save_pcd(points, pcd_file)
 
@@ -191,8 +193,8 @@ def main(path, x1=True):
 
 
 if __name__ == '__main__':
-    total_dir = r"C:\Users\EDY\Downloads\pilot_Data-20221108T101954Z-001\pilot_Data\total"
+    total_dir = r"D:\Desktop\Project_file\谢秋梅\polit\新建文件夹"
     for dir in os.listdir(total_dir):
         path = os.path.join(total_dir, dir)
     # path = r"C:\Users\EDY\Downloads\pilot_Data-20221108T101954Z-001\pilot_Data\single"
-        main(path, x1=False)
+        main(path, x1=True)

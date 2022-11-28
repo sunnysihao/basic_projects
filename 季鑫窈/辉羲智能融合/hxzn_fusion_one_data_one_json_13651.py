@@ -1,0 +1,131 @@
+# -*- coding: utf-8 -*- 
+# @Time : 2022/11/28
+# @Author : zhangsihao@basicfinder.com
+"""
+"""
+import os
+import json
+from tqdm import tqdm
+
+
+def list_files(in_path: str):
+    file_list = []
+    for root, _, files in os.walk(in_path):
+        for file in files:
+            if os.path.splitext(file)[-1] == '.json':
+                file_list.append(os.path.join(root, file))
+    return file_list
+
+
+def load_json(json_file: str):
+    with open(json_file, 'r', encoding='utf-8') as f:
+        content = f.read()
+        json_content = json.loads(content)
+    return json_content
+
+
+def update_json(json_dir: str, check_file: str):
+    null_err = []
+    miss_attr = []
+    for file in tqdm(list_files(json_dir)):
+        json_content = load_json(file)
+        data = json_content['data']
+        data_id = json_content['data_id']
+        ext = json_content['ext']
+        boxes = json_content['result']['data']
+        info = json_content['result']['info']
+        data_deleted_file = json_content['result']['data_deleted_file']
+        box_data = []
+        for box in boxes:
+            int_id = box['trackName']
+            frame_number = box['frame'] + 1
+            mark_dir = {
+                "job_id": data_id,
+                "frame_number": frame_number,
+                "box_id": int_id
+            }
+            box['mark_dir'] = mark_dir
+            attrs = box['attrs']
+            class_type = box['classType']
+            if class_type == '忽略框':
+                continue
+            else:
+                obj_type = box['objType']
+                if obj_type == '3d':
+                    if attrs:
+                        x, y, z = box['center3D'].values()
+                        nx, ny, nz = box['size3D'].values()
+                        if not x or not y or not z or not nx or not ny or not nz:
+                            null_str = f"作业ID:{data_id} - 第{frame_number}帧 - {int_id}号框有null值"
+                            null_err.append(null_str)
+                            continue
+                        else:
+                            new_attrs = {}
+                            nk = False
+                            need_key = ['车辆', 'VUR', 'VRU', '附属物', '静态障碍物']
+                            for attr_k, attr_v in attrs.items():
+                                if attr_k in need_key:
+                                   nk = True
+                                else:
+                                    nk = nk
+                                if attr_k == 'VUR':
+                                    new_attrs['VRU'] = attr_v
+                                else:
+                                    new_attrs[attr_k] = attr_v
+                            if nk:
+                                box['attrs'] = new_attrs
+                                box_data.append(box)
+                            else:
+                                attr_err = f"作业ID:{data_id} - 第{frame_number}帧 - {int_id}号框缺少属性"
+                                miss_attr.append(attr_err)
+                                continue
+                    else:
+                        attr_err = f"作业ID:{data_id} - 第{frame_number}帧 - {int_id}号框缺少属性"
+                        miss_attr.append(attr_err)
+                        continue
+                else:
+                    box_data.append(box)
+
+        result = {
+            "data": box_data,
+            "info": info,
+            "data_deleted_file": data_deleted_file
+        }
+        new_content = {
+            "data": data,
+            "result": result,
+            "data_id": data_id,
+            "ext": ext
+        }
+        with open(file, 'w', encoding='utf-8') as nf:
+            nf.write(json.dumps(new_content, ensure_ascii=False))
+    detection_info = {
+        "has_nan": null_err,
+        "missing_attributes": miss_attr
+    }
+    if not os.path.exists(check_file):
+        with open(check_file, 'w', encoding='utf-8') as df:
+            df.write(json.dumps(detection_info, indent=1))
+    else:
+        with open(check_file, 'r', encoding='utf-8-sig') as f:
+            content = f.read()
+            detection_content = json.loads(content)
+            detection_content['detection_info'] = detection_info
+            with open(check_file, 'w', encoding='utf-8') as df:
+                df.write(json.dumps(detection_content, indent=1))
+
+
+if __name__ == '__main__':
+    # import argparse
+    #
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument('json_dir', type=str)
+    # parser.add_argument('check_file', type=str)
+    # args = parser.parse_args()
+    #
+    # json_dir = args.json_dir
+    # check_file = args.check_file
+
+    json_dir = r"C:\Users\EDY\Downloads\hx_ronghe - 副本"
+    check_file = r"C:\Users\EDY\Downloads\hx_ronghe - 副本\check file.json"
+    update_json(json_dir, check_file)
