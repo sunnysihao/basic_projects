@@ -116,16 +116,16 @@ def update_json(json_dir: str, check_file: str):
 
 
 if __name__ == '__main__':
-    # import argparse
-    #
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument('json_dir', type=str)
-    # parser.add_argument('check_file', type=str)
-    # args = parser.parse_args()
-    #
-    # json_dir = args.json_dir
-    # check_file = args.check_file
+    import argparse
 
-    json_dir = r"C:\Users\EDY\Downloads\hx_ronghe - 副本"
-    check_file = r"C:\Users\EDY\Downloads\hx_ronghe - 副本\check file.json"
+    parser = argparse.ArgumentParser()
+    parser.add_argument('json_dir', type=str)
+    parser.add_argument('check_file', type=str)
+    args = parser.parse_args()
+
+    json_dir = args.json_dir
+    check_file = args.check_file
+
+    # json_dir = r"C:\Users\EDY\Downloads\hx_ronghe - 副本"
+    # check_file = r"C:\Users\EDY\Downloads\hx_ronghe - 副本\check file.json"
     update_json(json_dir, check_file)
