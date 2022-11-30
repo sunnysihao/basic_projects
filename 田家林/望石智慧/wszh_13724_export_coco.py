@@ -76,7 +76,7 @@ def json2coco(in_dir, category_json):
                 "id": img_id,
                 "width": iw,
                 "height": ih,
-                "file_name": file_name,
+                "file_name": img_url.split('/')[-1],
                 "license": 0,
                 "flickr_url": '',  # flickr网路地址
                 "coco_url": '',  # 网路地址路径
@@ -108,6 +108,15 @@ def json2coco(in_dir, category_json):
 
 
 if __name__ == '__main__':
-    category_json = r"D:\Desktop\Project_file\田家林\望石智慧\journal\category.json"
-    in_dir = r"D:\Desktop\Project_file\田家林\望石智慧\journal\json_45096_114268_20221129110317 - 副本"
-    json2coco(in_dir, category_json)
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('json_dir', type=str)
+    parser.add_argument('category_json', type=str)
+    args = parser.parse_args()
+
+    json_dir = args.json_dir
+    category_json = args.category_json
+    # category_json = r"D:\Desktop\Project_file\田家林\望石智慧\journal\category.json"
+    # json_dir = r"D:\Desktop\Project_file\田家林\望石智慧\journal\json_45096_114268_20221129110317 - 副本"
+    json2coco(json_dir, category_json)

@@ -31,7 +31,13 @@ def load_json(json_file: str):
     return json_content
 
 
-def json2xml(json_dir, xml_dir):
+def json2xml(json_dir, xml_dir, category_json):
+    categorys = load_json(category_json)['categories']
+    category_mapping = {}
+    for cate in categorys:
+        c_name = cate['name']
+        c_sup = cate['supercategory']
+        category_mapping[c_name] = c_sup
     mark_err = []
     for file in tqdm(list_files(json_dir, '.json')):
         file_name = os.path.splitext(os.path.basename(file))[0]
@@ -52,7 +58,7 @@ def json2xml(json_dir, xml_dir):
 
         filename = doc.createElement('filename')
         root.appendChild(filename)
-        filename_text = doc.createTextNode(file_name + '.jpg')
+        filename_text = doc.createTextNode(img_url.split('/')[-1])
         filename.appendChild(filename_text)
 
         source = doc.createElement('source')
@@ -96,6 +102,11 @@ def json2xml(json_dir, xml_dir):
 
             _object = doc.createElement('object')
             root.appendChild(_object)
+
+            sup_cate = doc.createElement('supercategory')
+            _object.appendChild(sup_cate)
+            sup_cate_text = doc.createTextNode(category_mapping[label])
+            sup_cate.appendChild(sup_cate_text)
 
             _name = doc.createElement('name')
             _object.appendChild(_name)
@@ -159,17 +170,18 @@ def json2xml(json_dir, xml_dir):
 
 
 if __name__ == '__main__':
-    # import argparse
-    #
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument('json_dir', type=str)
-    # parser.add_argument('xml_dir', type=str)
-    # parser.add_argument('check_file', type=str)
-    # args = parser.parse_args()
-    #
-    # json_dir = args.json_dir
-    # xml_dir = args.xml_dir
-    # check_file = args.check_file
-    json_dir = r"D:\Desktop\Project_file\田家林\望石智慧\journal\json_45096_114268_20221129110317 - 副本"
-    xml_dir = r"D:\Desktop\Project_file\田家林\望石智慧\journal\xml_result"
-    json2xml(json_dir, xml_dir)
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('json_dir', type=str)
+    parser.add_argument('xml_dir', type=str)
+    parser.add_argument('category_json', type=str)
+    args = parser.parse_args()
+
+    json_dir = args.json_dir
+    xml_dir = args.xml_dir
+    category_json = args.category_json
+    # json_dir = r"D:\Desktop\Project_file\田家林\望石智慧\journal\json_45096_114268_20221129110317 - 副本"
+    # xml_dir = r"D:\Desktop\Project_file\田家林\望石智慧\journal\voc_results"
+    # category_json = r"D:\Desktop\Project_file\田家林\望石智慧\journal\category.json"
+    json2xml(json_dir, xml_dir, category_json)
