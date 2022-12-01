@@ -5,6 +5,8 @@ import json
 import os
 import math
 import numpy as np
+from load_pcd_points import load_pc_data
+import PIL.Image as Image
 
 
 def list_files(in_path: str):
@@ -30,6 +32,12 @@ def load_json(json_path: str):
     return json_content
 
 
+def read_pcd(filepath):
+    points = load_pc_data(filepath)
+    return np.array(points[:, 0:4])
+
+
+
 calib_content = [
             "Tr_velo_to_cam:[[0, -1, 0, 0],[0, 0, -1, 0],[1, 0, 0, 0],[0, 0, 0, 1]]\n",
             "Camera internal:[[292.1274058, 0, 292.1628842], [0, 238.4474201, 335.0661855], [0, 0, 1]]"
@@ -41,17 +49,38 @@ def write_result(json_dir: str, output_path: str, check_file: str):
     result_path = os.path.join(output_path, 'label')
     if not os.path.exists(result_path):
         os.mkdir(result_path)
+    image_path = os.path.join(output_path, 'image')
+    if not os.path.exists(image_path):
+        os.mkdir(image_path)
+    velodyne_path = os.path.join(output_path, 'velodyne')
+    if not os.path.exists(velodyne_path):
+        os.mkdir(velodyne_path)
     calib_path = os.path.join(output_path, 'calib')
     if not os.path.exists(calib_path):
         os.mkdir(calib_path)
     empty_label = []
     marking_error = []
     for file in list_files(json_dir):
-        # file_name = os.path.splitext(os.path.basename(file))[0]
-        result_file = os.path.join(result_path, str(name_num) + '.txt')
-        calib_file = os.path.join(calib_path, str(name_num) + '.txt')
         line_data = []
         json_content = load_json(file)
+        resource_path = r"/basicfinder/www/saas.basicfinder.com/api/resource"
+        pcd_url = json_content['data']['3d_url']
+        img_url = json_content['data']['3d_img0']
+        ori_pcd_file = os.path.join(resource_path, pcd_url)
+        ori_img_file = os.path.join(resource_path, img_url)
+        # file_name = os.path.splitext(os.path.basename(file))[0]
+        result_file = os.path.join(result_path, str(name_num) + '.txt')
+        image_file = os.path.join(image_path, str(name_num) + '.png')
+        #转换图片为png文件
+        image = Image.open(ori_img_file)
+        image = image.convert('RGB')
+        image.save(image_file)
+        velodyne_file = os.path.join(velodyne_path, str(name_num) + '.bin')
+        #pcd转bin文件
+        pl = read_pcd(ori_pcd_file)
+        pl = pl.reshape(-1, 4).astype(np.float32)
+        pl.tofile(velodyne_file)
+        calib_file = os.path.join(calib_path, str(name_num) + '.txt')
         data_id = json_content['data_id']
         boxs = json_content['result']['data']
         ext = np.array([[0, -1, 0, 0],
