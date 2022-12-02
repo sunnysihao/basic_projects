@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*- 
-# @Time : 2022/11/4
-# @Author : zhangsihao@basicfinder.com
+
 """
 文思海辉,模板13386,点云连续帧(beta)标注，一帧一结果导出脚本
 """
