@@ -39,7 +39,9 @@ def load_json(json_path: str):
     return json_content
 
 
-def write_result(json_dir: str, result_path):
+def write_result(json_dir: str, result_path, check_file):
+    count_2d = 0
+    count_3d = 0
     for _dir in list_dir(json_dir):
         json_path = os.path.join(json_dir, _dir, '3d_url')
         set_name = _dir
@@ -95,6 +97,7 @@ def write_result(json_dir: str, result_path):
                     rotation_y = -10
                     string = f"{label} {truncated} {occluded} {alpha} {scal} {size} {bottom_center} {rotation_y}\n"
                     line_data.append(string)
+                    count_2d += 1
                 else:
                     if box['attrs'] != None:
                         label = type
@@ -125,6 +128,7 @@ def write_result(json_dir: str, result_path):
                         alpha = "%.2f" % alpha_in_pi(float(r_y - theta))
                         string = f"{label} {truncated} {occluded} {alpha} {scal} {size} {bottom_center} {rotation_y}\n"
                         line_data.append(string)
+                        count_3d += 1
                     else:
                         job_id = box['cBy']
                         int_id = box['intId']
@@ -156,12 +160,28 @@ def write_result(json_dir: str, result_path):
 
         error = {
             "errors": all_err,
-            "whitch_batch": list(set(batch_list))
+            "whitch_batch": list(set(batch_list)),
+
         }
         err_file = os.path.join(os.path.dirname(result_path), 'errors.json')
 
         with open(err_file, 'w', encoding='utf-8') as ef:
             ef.write(json.dumps(error))
+    check_content = {
+        "count_2D&3D": [
+            f"2D框数量: {count_2d}",
+            f"3D框数量: {count_3d}"
+        ]
+    }
+    if not os.path.exists(check_file):
+        with open(check_file, 'w', encoding='utf-8') as cf:
+            cf.write(json.dumps(check_content, ensure_ascii=False))
+    else:
+        with open(check_file, 'r', encoding='utf-8-sig') as of:
+            of_content = json.loads(of.read())
+            of_content["marking_errors"] = check_content
+        with open(check_file, 'w', encoding='utf-8') as cf:
+            cf.write(json.dumps(of_content, ensure_ascii=False))
 
 
 if __name__ == "__main__":
@@ -170,12 +190,15 @@ if __name__ == "__main__":
     # parser = argparse.ArgumentParser()
     # parser.add_argument('result_json_path', type=str)
     # parser.add_argument('output_path', type=str)
+    # parser.add_argument('check_file', type=str)
     # args = parser.parse_args()
     #
     # result_json_path = args.result_json_path
     # output_path = args.output_path
+    # check_file = args.check_file
 
-    result_json_path = r"D:\Desktop\BasicProject\魏宏锐\新建文件夹\tj"
-    output_path = r"D:\Desktop\BasicProject\魏宏锐\新建文件夹"
-    write_result(result_json_path, output_path)
+    result_json_path = r"C:\Users\EDY\Downloads\json_43585_more_20221205141413\r"
+    output_path = r"C:\Users\EDY\Downloads\json_43585_more_20221205141413\kit"
+    check_file = r"C:\Users\EDY\Downloads\json_43585_more_20221205141413\c.json"
+    write_result(result_json_path, output_path, check_file)
 
