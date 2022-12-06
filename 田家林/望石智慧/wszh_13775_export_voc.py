@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*- 
-# @Time : 2022/11/29
+# @Time : 2022/12/06
 # @Author : zhangsihao@basicfinder.com
 """
 望石科技13724模板voc导出脚本
@@ -27,23 +27,20 @@ def load_json(json_file: str):
 
 
 def json2xml(json_dir, xml_dir):
+    category_mapping = {}
     mark_err = []
     for file in tqdm(list_files(json_dir, '.json')):
         file_name = os.path.splitext(os.path.basename(file))[0]
         jc = load_json(file)
+        trans_v = jc['result']['frameAttr'][0]['value']
+        if trans_v == '默认无翻转':
+            transpose = False
+        else:
+            transpose = True
         iw = jc['result']['data'][0]['iw']
         ih = jc['result']['data'][0]['ih']
         img_url = jc['data']['image_url']
         folder = img_url.split('/')[-2]
-        transpose = False
-
-        boxes = jc['result']['data']
-        for box in boxes:
-            trans_text = box['text']
-            if trans_text:
-                transpose = True
-            else:
-                transpose = transpose
 
         doc = Document()
         root = doc.createElement('annotation')
@@ -94,9 +91,14 @@ def json2xml(json_dir, xml_dir):
         segmented_text = doc.createTextNode('0')
         segmented.appendChild(segmented_text)
 
+        boxes = jc['result']['data']
         for box in boxes:
-            cat_name = box['label'][0]
             super_cat = box['category'][0].split('-')[0]
+            label = box['label'][0]
+            ocr_text = box['text']
+            cat_name = ocr_text + label
+            if cat_name.endswith('0'):
+                cat_name = cat_name.replace('_0', '')
             xl = []
             yl = []
             for point in box['coordinate']:
@@ -173,16 +175,20 @@ def json2xml(json_dir, xml_dir):
 
 
 if __name__ == '__main__':
-    import argparse
+    # import argparse
+    #
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument('json_dir', type=str)
+    # parser.add_argument('xml_dir', type=str)
+    # parser.add_argument('category_json', type=str)
+    # args = parser.parse_args()
+    #
+    # json_dir = args.json_dir
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('json_dir', type=str)
-    parser.add_argument('xml_dir', type=str)
-    args = parser.parse_args()
 
-    json_dir = args.json_dir
-    xml_dir = args.xml_dir
-    # json_dir = r"C:\Users\EDY\Downloads\json_45138_114525_20221206142313\wszh_upload_images"
-    # xml_dir = r"C:\Users\EDY\Downloads\json_45138_114525_20221206142313\xml"
+    # xml_dir = args.xml_dir
+    # category_json = args.category_json
+    json_dir = r"C:\Users\EDY\Downloads\json_45228_114724_20221205172348\wszh_upload_images - 副本\0a8cef41e4b403a588af9f80a8563bb2"
+    xml_dir = r"C:\Users\EDY\Downloads\json_45228_114724_20221205172348\wszh_upload_images - 副本\xml"
     # category_json = r"D:\Desktop\Project_file\田家林\望石智慧\journal\category.json"
     json2xml(json_dir, xml_dir)

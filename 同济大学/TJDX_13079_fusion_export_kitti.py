@@ -161,20 +161,20 @@ def write_result(json_dir: str, result_path, check_file):
 
 
 if __name__ == "__main__":
-    import argparse
+    # import argparse
+    #
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument('result_json_path', type=str)
+    # parser.add_argument('output_path', type=str)
+    # parser.add_argument('check_file', type=str)
+    # args = parser.parse_args()
+    #
+    # result_json_path = args.result_json_path
+    # output_path = args.output_path
+    # check_file = args.check_file
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('result_json_path', type=str)
-    parser.add_argument('output_path', type=str)
-    parser.add_argument('check_file', type=str)
-    args = parser.parse_args()
-
-    result_json_path = args.result_json_path
-    output_path = args.output_path
-    check_file = args.check_file
-
-    # result_json_path = r"C:\Users\EDY\Downloads\json_44972_113733,113734_20221205175432\新建文件夹"
-    # output_path = r"C:\Users\EDY\Downloads\json_44972_113733,113734_20221205175432\out"
-    # check_file = r"C:\Users\EDY\Downloads\json_44972_113733,113734_20221205175432\c.json"
+    result_json_path = r"C:\Users\EDY\Downloads\json_44972_113733,113734_20221205175432\新建文件夹"
+    output_path = r"C:\Users\EDY\Downloads\json_44972_113733,113734_20221205175432\out"
+    check_file = r"C:\Users\EDY\Downloads\json_44972_113733,113734_20221205175432\c.json"
     write_result(result_json_path, output_path, check_file)
 

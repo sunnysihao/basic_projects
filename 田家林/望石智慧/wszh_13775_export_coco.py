@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*- 
-# @Time : 2022/11/29
+# @Time : 2022/12/06
 # @Author : zhangsihao@basicfinder.com
 """
-望石科技13724模板coco导出脚本
+望石科技13775模板coco导出脚本
 """
 import os
 from os.path import join, basename, dirname, splitext, exists
@@ -27,33 +27,36 @@ def load_json(json_file: str):
     return json_content
 
 
-def json2coco(in_dir):
+def json2coco(in_dir: str):
     images = []
     annotation = []
     categorys = []
     category_mapping = {}
+
     img_id = 0
     box_id = 0
     cat_id = 1
     for file in list_files(in_dir, '.json'):
         file_name = splitext(basename(file))[0]
         jc = load_json(file)
+        trans_v = jc['result']['frameAttr'][0]['value']
+        if trans_v == '默认无翻转':
+            transpose = False
+        else:
+            transpose = True
         img_url = jc['data']['image_url']
         folder = rf"{'/'.join(img_url.split('/')[-3:-1])}"
-        iw = 1984
-        ih = 2806
-
-        transpose = False
+        iw = jc['result']['data'][0]['iw']
+        ih = jc['result']['data'][0]['ih']
 
         boxes = jc['result']['data']
         for box in boxes:
-            trans_text = box['text']
-            if trans_text:
-                transpose = True
-            else:
-                transpose = transpose
-            cat_name = box['label'][0]
             super_cat = box['category'][0].split('-')[0]
+            label = box['label'][0]
+            ocr_text = box['text']
+            cat_name = ocr_text + label
+            if cat_name.endswith('0'):
+                cat_name = cat_name.replace('_0', '')
             if cat_name not in category_mapping.keys():
                 category_mapping[cat_name] = cat_id
                 category = {
@@ -63,6 +66,7 @@ def json2coco(in_dir):
                 }
                 categorys.append(category)
                 cat_id += 1
+
             width = box['width']
             height = box['height']
             iw = box['iw']
@@ -103,7 +107,7 @@ def json2coco(in_dir):
         img_id += 1
 
     info = {
-        "year": 2022,# 年份
+        "year": '2022',# 年份
         "version": '',# 版本
         "description": 'PDF table annotation', # 数据集描述
         "contributor": 'basicfinder COCO group',# 提供者
@@ -124,13 +128,15 @@ def json2coco(in_dir):
 
 
 if __name__ == '__main__':
-    import argparse
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('json_dir', type=str)
-    args = parser.parse_args()
-
-    json_dir = args.json_dir
-
-    # json_dir = r"C:\Users\EDY\Downloads\json_45138_114525_20221206142313\wszh_upload_images"
+    # import argparse
+    #
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument('json_dir', type=str)
+    # parser.add_argument('category_json', type=str)
+    # args = parser.parse_args()
+    #
+    # json_dir = args.json_dir
+    # category_json = args.category_json
+    # category_json = r"D:\Desktop\Project_file\田家林\望石智慧\journal\category.json"
+    json_dir = r"C:\Users\EDY\Downloads\json_45228_114724_20221205172348\wszh_upload_images - 副本"
     json2coco(json_dir)
