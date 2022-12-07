@@ -37,7 +37,6 @@ def json2coco(in_dir: str):
     box_id = 0
     cat_id = 1
     for file in list_files(in_dir, '.json'):
-        file_name = splitext(basename(file))[0]
         jc = load_json(file)
         trans_v = jc['result']['frameAttr'][0]['value']
         if trans_v == '默认无翻转':
@@ -128,15 +127,13 @@ def json2coco(in_dir: str):
 
 
 if __name__ == '__main__':
-    # import argparse
-    #
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument('json_dir', type=str)
-    # parser.add_argument('category_json', type=str)
-    # args = parser.parse_args()
-    #
-    # json_dir = args.json_dir
-    # category_json = args.category_json
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('json_dir', type=str)
+    args = parser.parse_args()
+
+    json_dir = args.json_dir
     # category_json = r"D:\Desktop\Project_file\田家林\望石智慧\journal\category.json"
-    json_dir = r"C:\Users\EDY\Downloads\json_45228_114724_20221205172348\wszh_upload_images - 副本"
+    # json_dir = r"C:\Users\EDY\Downloads\json_45228_114724_20221205172348\wszh_upload_images - 副本"
     json2coco(json_dir)

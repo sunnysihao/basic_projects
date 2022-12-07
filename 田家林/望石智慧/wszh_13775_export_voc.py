@@ -27,8 +27,6 @@ def load_json(json_file: str):
 
 
 def json2xml(json_dir, xml_dir):
-    category_mapping = {}
-    mark_err = []
     for file in tqdm(list_files(json_dir, '.json')):
         file_name = os.path.splitext(os.path.basename(file))[0]
         jc = load_json(file)
@@ -175,20 +173,15 @@ def json2xml(json_dir, xml_dir):
 
 
 if __name__ == '__main__':
-    # import argparse
-    #
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument('json_dir', type=str)
-    # parser.add_argument('xml_dir', type=str)
-    # parser.add_argument('category_json', type=str)
-    # args = parser.parse_args()
-    #
-    # json_dir = args.json_dir
+    import argparse
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument('json_dir', type=str)
+    parser.add_argument('xml_dir', type=str)
+    args = parser.parse_args()
 
-    # xml_dir = args.xml_dir
-    # category_json = args.category_json
-    json_dir = r"C:\Users\EDY\Downloads\json_45228_114724_20221205172348\wszh_upload_images - 副本\0a8cef41e4b403a588af9f80a8563bb2"
-    xml_dir = r"C:\Users\EDY\Downloads\json_45228_114724_20221205172348\wszh_upload_images - 副本\xml"
-    # category_json = r"D:\Desktop\Project_file\田家林\望石智慧\journal\category.json"
+    json_dir = args.json_dir
+    xml_dir = args.xml_dir
+    # json_dir = r"C:\Users\EDY\Downloads\json_45228_114724_20221205172348\wszh_upload_images - 副本\0a8cef41e4b403a588af9f80a8563bb2"
+    # xml_dir = r"C:\Users\EDY\Downloads\json_45228_114724_20221205172348\wszh_upload_images - 副本\xml"
     json2xml(json_dir, xml_dir)
