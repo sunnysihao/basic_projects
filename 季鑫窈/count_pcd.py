@@ -20,5 +20,5 @@ def main(path):
 
 
 if __name__ == '__main__':
-    path = r"/tmp/root/model_saas_data/uploadfile/jxy1127 (admin)/mnt"
+    path = r"/tmp/root/model_saas_data/uploadfile/jxy1209 (admin)/mnt"
     main(path)
