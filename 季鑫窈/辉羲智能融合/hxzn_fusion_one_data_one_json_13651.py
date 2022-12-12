@@ -8,6 +8,36 @@ import json
 from tqdm import tqdm
 
 
+class_type_mapping = {
+    "小型车": 'car',
+    "货车": 'truck',
+    "分节车": 'split_vehicle',
+    "公交车": 'bus',
+    "三轮车": 'tricycle',
+    "异形车": 'special_vehicle',
+    "人": 'pedestrian',
+    "有人的两轮车": 'cyclist',
+    "无人的两轮车": 'bicycle',
+    "动物": 'animal',
+    "车辆附属物": 'attach_vehicle',
+    "VRU的附属物": 'attach_vru',
+    "杆子 栏杆": 'banner',
+    "锥桶 水桶": 'cone',
+    "立柱": 'pillar',
+    "水马": 'barrier',
+    "交通警示栏": 'fence_on_road',
+    "相邻的障碍物": 'merged',
+    "本车道": '0',
+    "对向车道": '1',
+    "遮挡": 'camera_invisible',
+    "车辆": 'vehicle',
+    "附属物": 'attachment',
+    "静态障碍物": 'static_object',
+    "忽略框": 'ignore',
+    "道路施工围栏": 'stop_fence'
+}
+
+
 def list_files(in_path: str):
     file_list = []
     for root, _, files in os.walk(in_path):
@@ -47,10 +77,12 @@ def update_json(json_dir: str, check_file: str):
             box['mark_dir'] = mark_dir
             attrs = box['attrs']
             class_type = box['classType']
-            if class_type == '忽略框':
+            if class_type == 'ignore':
                 continue
             else:
                 obj_type = box['objType']
+                class_type = box['classType']
+                box['classType'] = class_type_mapping[class_type]
                 if obj_type == '3d':
                     if attrs:
                         x, y, z = box['center3D'].values()
@@ -72,6 +104,10 @@ def update_json(json_dir: str, check_file: str):
                                     new_attrs['VRU'] = attr_v
                                 else:
                                     new_attrs[attr_k] = attr_v
+                                if attr_v == '本车道':
+                                    new_attrs[attr_k] = '0'
+                                else:
+                                    new_attrs[attr_k] = '1'
                             if nk:
                                 box['attrs'] = new_attrs
                                 box_data.append(box)
@@ -126,6 +162,6 @@ if __name__ == '__main__':
     json_dir = args.json_dir
     check_file = args.check_file
 
-    # json_dir = r"C:\Users\EDY\Downloads\hx_ronghe - 副本"
-    # check_file = r"C:\Users\EDY\Downloads\hx_ronghe - 副本\check file.json"
+    # json_dir = r"C:\Users\EDY\Downloads\hx_rh"
+    # check_file = r"C:\Users\EDY\Downloads\hx_rh\check file.json"
     update_json(json_dir, check_file)
