@@ -79,6 +79,10 @@ def update_json(json_dir: str, check_file: str):
             class_type = box['classType']
             if class_type == 'ignore':
                 continue
+            elif not class_type:
+                null_str = f"作业ID:{data_id} - 第{frame_number}帧 - {int_id}号框无标签"
+                null_err.append(null_str)
+                continue
             else:
                 obj_type = box['objType']
                 class_type = box['classType']
