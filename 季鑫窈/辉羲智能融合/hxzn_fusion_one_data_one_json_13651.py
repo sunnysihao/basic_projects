@@ -34,7 +34,8 @@ class_type_mapping = {
     "附属物": 'attachment',
     "静态障碍物": 'static_object',
     "忽略框": 'ignore',
-    "道路施工围栏": 'stop_fence'
+    "道路施工围栏": 'stop_fence',
+    "Hard": 'Hard'
 }
 
 
@@ -166,6 +167,6 @@ if __name__ == '__main__':
     json_dir = args.json_dir
     check_file = args.check_file
 
-    # json_dir = r"C:\Users\EDY\Downloads\hx_rh"
-    # check_file = r"C:\Users\EDY\Downloads\hx_rh\check file.json"
+    # json_dir = r"C:\Users\Administrator\Downloads\下载结果_json_45009_113890_20221216171655"
+    # check_file = r"C:\Users\Administrator\Downloads\下载结果_json_45009_113890_20221216171655\check file.json"
     update_json(json_dir, check_file)
