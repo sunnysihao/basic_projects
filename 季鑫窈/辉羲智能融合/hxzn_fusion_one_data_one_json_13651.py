@@ -78,7 +78,7 @@ def update_json(json_dir: str, check_file: str):
             box['mark_dir'] = mark_dir
             attrs = box['attrs']
             class_type = box['classType']
-            if class_type == 'ignore':
+            if class_type in ['ignore', '忽略框', 'Hard']:
                 continue
             elif not class_type:
                 null_str = f"作业ID:{data_id} - 第{frame_number}帧 - {int_id}号框无标签"
