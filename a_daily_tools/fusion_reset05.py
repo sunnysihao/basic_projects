@@ -283,17 +283,20 @@ def trans_3D_data(data_ids, dataset_id, team_id, dataset_result_id, class_name_i
                         else:
                             classValues = []
                             for att_k, att_v in attrs.items():
-                                class_value = {
-                                    "id": name_attr_mapping[class_name][att_k],
-                                    "pid": None,
-                                    "pvalue": None,
-                                    "name": att_k,
-                                    "type": "RADIO",
-                                    "value": att_v,
-                                    "alias": "",
-                                    "isLeaf": True
-                                }
-                                classValues.append(class_value)
+                                try:
+                                    class_value = {
+                                        "id": name_attr_mapping[class_name][att_k],
+                                        "pid": None,
+                                        "pvalue": None,
+                                        "name": att_k,
+                                        "type": "RADIO",
+                                        "value": att_v,
+                                        "alias": "",
+                                        "isLeaf": True
+                                    }
+                                    classValues.append(class_value)
+                                except:
+                                    continue
                         obj_t = box_data['objType']
                         points = box_data['coordinate']
                         x_l = []

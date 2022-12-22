@@ -269,70 +269,76 @@ def trans_3D_data(data_ids, dataset_id, team_id, dataset_result_id, class_name_i
                             }
                             objects.append(obj)
                     else:  # 图片标注
-                        class_name = box_data['classType']
-                        if not class_name:
-                            class_id = ''
-                        elif class_name not in class_name_id_mapping.keys():
-                            class_id = ''
+                        if 'classType' in box_data.keys():
+                            class_name = box_data['classType']
+                            if not class_name:
+                                class_id = ''
+                            elif class_name not in class_name_id_mapping.keys():
+                                class_id = ''
+                            else:
+                                class_id = class_name_id_mapping[class_name]
+                            class_ids.append(class_id)
+                            attrs = box_data['attrs']
+                            if not attrs:
+                                classValues = []
+                            else:
+                                classValues = []
+                                for att_k, att_v in attrs.items():
+                                    try:
+                                        class_value = {
+                                            "id": name_attr_mapping[class_name][att_k],
+                                            "pid": None,
+                                            "pvalue": None,
+                                            "name": att_k,
+                                            "type": "RADIO",
+                                            "value": att_v,
+                                            "alias": "",
+                                            "isLeaf": True
+                                        }
+                                        classValues.append(class_value)
+                                    except:
+                                        continue
+                            obj_t = box_data['objType']
+                            coordinate = box_data['coordinate']
+                            x_l = []
+                            y_l = []
+                            for point in coordinate:
+                                x_l.append(point['x'])
+                                y_l.append(point['y'])
+                            if obj_t == 'rectangle':
+                                points = [{"x": min(x_l), "y": min(y_l)},
+                                          {"x": max(x_l), "y": max(y_l)}]
+                            else:
+                                points = coordinate
+                            obj = {
+                                "classId": class_id,
+                                "className": class_name,
+                                "classValues": classValues,
+                                "contour": {
+                                    "points": points
+                                },
+                                "createdAt": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                                "createdBy": team_id,
+                                "id": box_data['frontId'],
+                                "meta": {
+                                    "color": box_data['color'],
+                                    "lastTime": None,
+                                    "sourceId": dataset_result_id,
+                                    "sourceType": "EXTERNAL_GROUND_TRUTH",
+                                    "updateTime": None,
+                                    "version": 1.0,
+                                    "classType": class_name,
+                                },
+                                "modelClass": box_data['modelClass'],
+                                "modelConfidence": None,
+                                "trackId": 1,
+                                "trackName": 1,
+                                "type": obj_t.upper(),
+                                "version": 1.0
+                            }
+                            objects.append(obj)
                         else:
-                            class_id = class_name_id_mapping[class_name]
-                        class_ids.append(class_id)
-                        attrs = box_data['attrs']
-                        if not attrs:
-                            classValues = []
-                        else:
-                            classValues = []
-                            for att_k, att_v in attrs.items():
-                                class_value = {
-                                    "id": name_attr_mapping[class_name][att_k],
-                                    "pid": None,
-                                    "pvalue": None,
-                                    "name": att_k,
-                                    "type": "RADIO",
-                                    "value": att_v,
-                                    "alias": "",
-                                    "isLeaf": True
-                                }
-                                classValues.append(class_value)
-                        obj_t = box_data['objType']
-                        coordinate = box_data['coordinate']
-                        x_l = []
-                        y_l = []
-                        for point in coordinate:
-                            x_l.append(point['x'])
-                            y_l.append(point['y'])
-                        if obj_t == 'rectangle':
-                            points = [{"x": min(x_l), "y": min(y_l)},
-                                      {"x": max(x_l), "y": max(y_l)}]
-                        else:
-                            points = coordinate
-                        obj = {
-                            "classId": class_id,
-                            "className": class_name,
-                            "classValues": classValues,
-                            "contour": {
-                                "points": points
-                            },
-                            "createdAt": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                            "createdBy": team_id,
-                            "id": box_data['frontId'],
-                            "meta": {
-                                "color": box_data['color'],
-                                "lastTime": None,
-                                "sourceId": dataset_result_id,
-                                "sourceType": "EXTERNAL_GROUND_TRUTH",
-                                "updateTime": None,
-                                "version": 1.0,
-                                "classType": class_name,
-                            },
-                            "modelClass": box_data['modelClass'],
-                            "modelConfidence": None,
-                            "trackId": 1,
-                            "trackName": 1,
-                            "type": obj_t.upper(),
-                            "version": 1.0
-                        }
-                        objects.append(obj)
+                            continue
 
                 d_team_id.append(team_id)
                 d_dataset_id.append(dataset_id)
@@ -394,55 +400,62 @@ def main(team_id):
     has_dataset_ids = list(set(df_dataset_ids['dataset_id']))
 
     for dataset_id in dataset_ids:
-        if dataset_id not in has_dataset_ids:
-            serial_number = worker.get_id()
-            write_upload_record(team_id, serial_number)
-            upload_sql = f'''
-                        select * from upload_record where serial_number={serial_number}
-                        '''
-            upload_df = pd.read_sql(upload_sql, target_engine)
-            upload_id = upload_df['id'][0]
-            write_dataset_result_source(team_id=team_id, dataset_id=dataset_id, upload_id=upload_id)
+        if dataset_id in [150322, 150311]:
+            continue
+        else:
+            if dataset_id not in has_dataset_ids:
+                serial_number = worker.get_id()
+                write_upload_record(team_id, serial_number)
+                upload_sql = f'''
+                            select * from upload_record where serial_number={serial_number}
+                            '''
+                upload_df = pd.read_sql(upload_sql, target_engine)
+                upload_id = upload_df['id'][0]
+                write_dataset_result_source(team_id=team_id, dataset_id=dataset_id, upload_id=upload_id)
 
-        result_source_sql = f'''
-        select * from dataset_result_source where team_id={team_id} and dataset_id={dataset_id} and source_type='EXTERNAL_GROUND_TRUTH'
-        '''
-        result_source_df = pd.read_sql(result_source_sql, target_engine)
-        dataset_result_id = result_source_df['id'][0]
-        dataset_obj_sql = f'''
-        select * from data_annotation_object where dataset_id={dataset_id}
-        '''
-        dataset_obj_df = pd.read_sql(dataset_obj_sql, result_engine)
-        data_ids = list(set(dataset_obj_df['data_id']))
-
-        data_result_sql = f'''
-                select * from data_annotation_result where dataset_id={dataset_id} and source_id={dataset_result_id}
-                '''
-        data_result_df = pd.read_sql(data_result_sql, target_engine)
-        ready_data_ids = list(set(data_result_df['data_id']))
-
-        dataset_class_sql = f'''
-            select * from dataset_class where dataset_id={dataset_id}
+            result_source_sql = f'''
+            select * from dataset_result_source where team_id={team_id} and dataset_id={dataset_id} and source_type='EXTERNAL_GROUND_TRUTH'
             '''
-        data_class_df = pd.read_sql(dataset_class_sql, class_engine)
-        class_name_id_mapping = {}
-        name_attr_mapping = {}
-        for x in data_class_df.iloc:
-            class_name = x['name']
-            class_id = x['id']
-            class_name_id_mapping[class_name] = str(class_id)
-            class_atts = json.loads(x['attributes'])
-            attr_id_mapping = {}
-            for att in class_atts:
-                name = att['name']
-                id = att['id']
-                attr_id_mapping[name] = id
-            name_attr_mapping[class_name] = attr_id_mapping
-        # for data_id in tqdm(data_ids, desc=f"{dataset_id}"):
-        trans_3D_data(data_ids=data_ids, dataset_id=dataset_id, team_id=team_id,
-                      dataset_result_id=dataset_result_id,
-                      class_name_id_mapping=class_name_id_mapping, name_attr_mapping=name_attr_mapping, ready_data_ids=ready_data_ids)
+            result_source_df = pd.read_sql(result_source_sql, target_engine)
+            dataset_result_id = result_source_df['id'][0]
+            dataset_obj_sql = f'''
+            select * from data_annotation_object where dataset_id={dataset_id}
+            '''
+            dataset_obj_df = pd.read_sql(dataset_obj_sql, result_engine)
+            data_ids = list(set(dataset_obj_df['data_id']))
+
+            data_result_sql = f'''
+                    select * from data_annotation_result where dataset_id={dataset_id} and source_id={dataset_result_id}
+                    '''
+            data_result_df = pd.read_sql(data_result_sql, target_engine)
+            ready_data_ids = list(set(data_result_df['data_id']))
+
+            dataset_class_sql = f'''
+                select * from dataset_class where dataset_id={dataset_id}
+                '''
+            data_class_df = pd.read_sql(dataset_class_sql, class_engine)
+            class_name_id_mapping = {}
+            name_attr_mapping = {}
+            for x in data_class_df.iloc:
+                class_name = x['name']
+                class_id = x['id']
+                class_name_id_mapping[class_name] = str(class_id)
+                class_atts = json.loads(x['attributes'])
+                attr_id_mapping = {}
+                for att in class_atts:
+                    try:
+                        name = att['name']
+                        id = att['id']
+                        attr_id_mapping[name] = id
+                    except:
+                        continue
+
+                name_attr_mapping[class_name] = attr_id_mapping
+            # for data_id in tqdm(data_ids, desc=f"{dataset_id}"):
+            trans_3D_data(data_ids=data_ids, dataset_id=dataset_id, team_id=team_id,
+                          dataset_result_id=dataset_result_id,
+                          class_name_id_mapping=class_name_id_mapping, name_attr_mapping=name_attr_mapping, ready_data_ids=ready_data_ids)
 
 
 if __name__ == '__main__':
-    main(team_id=120247)
+    main(team_id=90339)

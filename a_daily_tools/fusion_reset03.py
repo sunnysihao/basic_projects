@@ -142,10 +142,134 @@ def trans_3D_data(data_ids, dataset_id, team_id, dataset_result_id, class_name_i
                     dataset_id = box['dataset_id']
                     model_class_name = box['model_class_name']
                     box_data = json.loads(box['class_attributes'])
-                    if 'center3D' in box_data.keys():
-                        if 'attrs' in box_data.keys():
-                            obj_t = box_data['objType']
-                            obj_type = obj_type_mapping[obj_t]
+                    try:
+                        if 'center3D' in box_data.keys():
+                            if 'attrs' in box_data.keys():
+                                obj_t = box_data['objType']
+                                obj_type = obj_type_mapping[obj_t]
+                                class_name = box_data['classType']
+                                if not class_name:
+                                    class_id = ''
+                                elif class_name not in class_name_id_mapping.keys():
+                                    class_id = ''
+                                else:
+                                    class_id = class_name_id_mapping[class_name]
+                                class_ids.append(class_id)
+                                attrs = box_data['attrs']
+                                if not attrs:
+                                    classValues = []
+                                else:
+                                    classValues = []
+                                    for att_k, att_v in attrs.items():
+                                        try:
+                                            class_value = {
+                                                "id": name_attr_mapping[class_name][att_k],
+                                                "pid": None,
+                                                "pvalue": None,
+                                                "name": att_k,
+                                                "type": "RADIO",
+                                                "value": att_v,
+                                                "alias": "",
+                                                "isLeaf": True
+                                            }
+                                            classValues.append(class_value)
+                                        except:
+                                            continue
+
+                                if obj_t == '3d':
+                                    obj = {
+                                        "classId": class_id,
+                                        "className": class_name,
+                                        "classValues": classValues,
+                                        "contour": {
+                                            "center3D": box_data['center3D'],
+                                            "pointN": box_data['pointN'],
+                                            "points": box_data['points'],
+                                            "rotation3D": box_data['rotation3D'],
+                                            "size3D": box_data['size3D'],
+                                            "viewIndex": box_data['viewIndex']
+                                        },
+                                        "createdAt": str(box['created_at']),
+                                        "createdBy": box['created_by'],
+                                        "id": box_data['id'],
+                                        "meta": {
+                                            "annotateType": "3D_LABEL",
+                                            "resultStatus": "True_value",
+                                            "resultType": "",
+                                            "valid": 'UNKNOWN'
+                                        },
+                                        "modelClass": box_data['modelClass'],
+                                        "modelConfidence": None,
+                                        "trackId": box_data['trackId'],
+                                        "trackName": box_data['trackName'],
+                                        "type": obj_type,
+                                        "version": 1.0
+                                    }
+                                    objects.append(obj)
+                                elif obj_t == 'box2d':
+                                    obj = {
+                                        "id": box_data['id'],
+                                        "type": "2D_BOX",
+                                        "annotateType": "2D_LABEL",
+                                        "version": "1",
+                                        "createdBy": box['created_by'],
+                                        "createdAt": str(box['created_at']),
+                                        "trackId": box_data['trackId'],
+                                        "trackName": box_data['trackName'],
+                                        "classId": class_id,
+                                        "className": class_name,
+                                        "classValues": classValues,
+                                        "contour": {
+                                            "points": box_data['points'],
+                                            "viewIndex": box_data['viewIndex']
+                                        },
+
+                                        "meta": {}
+                                    }
+                                    objects.append(obj)
+                                else:
+                                    obj = {
+                                        "id": box_data['id'],
+                                        "type": "2D_RECT",
+                                        "version": "1",
+                                        "createdBy": box['created_by'],
+                                        "createdAt": str(box['created_at']),
+                                        "trackId": box_data['trackId'],
+                                        "trackName": box_data['trackName'],
+                                        "classId": class_id,
+                                        "className": class_name,
+                                        "classValues": classValues,
+                                        "contour": {
+                                            "points": box_data['points'],
+                                            "viewIndex": box_data['viewIndex']
+                                        },
+
+                                        "meta": {
+                                            "annotateType": "2D_LABEL"
+                                        }
+                                    }
+                                    objects.append(obj)
+
+                            else:
+                                obj = {
+                                    "contour": {
+                                        "center3D": box_data['center3D'],
+                                        "rotation3D": box_data['rotation3D'],
+                                        "size3D": box_data['size3D']
+                                    },
+                                    "meta": {
+                                        "annotateType": "3D_LABEL",
+                                        "resultStatus": "True_value",
+                                        "resultType": "",
+                                        "valid": 'UNKNOWN'
+                                    },
+                                    "modelClass": box_data['modelClass'],
+                                    "modelConfidence": None,
+                                    "type": obj_type_mapping[box_data['objType']],
+                                    "version": 1.0
+                                }
+                                objects.append(obj)
+                        else:  # 图片标注
                             class_name = box_data['classType']
                             if not class_name:
                                 class_id = ''
@@ -174,165 +298,47 @@ def trans_3D_data(data_ids, dataset_id, team_id, dataset_result_id, class_name_i
                                         classValues.append(class_value)
                                     except:
                                         continue
-
-                            if obj_t == '3d':
-                                obj = {
-                                    "classId": class_id,
-                                    "className": class_name,
-                                    "classValues": classValues,
-                                    "contour": {
-                                        "center3D": box_data['center3D'],
-                                        "pointN": box_data['pointN'],
-                                        "points": box_data['points'],
-                                        "rotation3D": box_data['rotation3D'],
-                                        "size3D": box_data['size3D'],
-                                        "viewIndex": box_data['viewIndex']
-                                    },
-                                    "createdAt": str(box['created_at']),
-                                    "createdBy": box['created_by'],
-                                    "id": box_data['id'],
-                                    "meta": {
-                                        "annotateType": "3D_LABEL",
-                                        "resultStatus": "True_value",
-                                        "resultType": "",
-                                        "valid": 'UNKNOWN'
-                                    },
-                                    "modelClass": box_data['modelClass'],
-                                    "modelConfidence": None,
-                                    "trackId": box_data['trackId'],
-                                    "trackName": box_data['trackName'],
-                                    "type": obj_type,
-                                    "version": 1.0
-                                }
-                                objects.append(obj)
-                            elif obj_t == 'box2d':
-                                obj = {
-                                    "id": box_data['id'],
-                                    "type": "2D_BOX",
-                                    "annotateType": "2D_LABEL",
-                                    "version": "1",
-                                    "createdBy": box['created_by'],
-                                    "createdAt": str(box['created_at']),
-                                    "trackId": box_data['trackId'],
-                                    "trackName": box_data['trackName'],
-                                    "classId": class_id,
-                                    "className": class_name,
-                                    "classValues": classValues,
-                                    "contour": {
-                                        "points": box_data['points'],
-                                        "viewIndex": box_data['viewIndex']
-                                    },
-
-                                    "meta": {}
-                                }
-                                objects.append(obj)
+                            obj_t = box_data['objType']
+                            coordinate = box_data['coordinate']
+                            x_l = []
+                            y_l = []
+                            for point in coordinate:
+                                x_l.append(point['x'])
+                                y_l.append(point['y'])
+                            if obj_t == 'rectangle':
+                                points = [{"x": min(x_l), "y": min(y_l)},
+                                          {"x": max(x_l), "y": max(y_l)}]
                             else:
-                                obj = {
-                                    "id": box_data['id'],
-                                    "type": "2D_RECT",
-                                    "version": "1",
-                                    "createdBy": box['created_by'],
-                                    "createdAt": str(box['created_at']),
-                                    "trackId": box_data['trackId'],
-                                    "trackName": box_data['trackName'],
-                                    "classId": class_id,
-                                    "className": class_name,
-                                    "classValues": classValues,
-                                    "contour": {
-                                        "points": box_data['points'],
-                                        "viewIndex": box_data['viewIndex']
-                                    },
-
-                                    "meta": {
-                                        "annotateType": "2D_LABEL"
-                                    }
-                                }
-                                objects.append(obj)
-
-                        else:
+                                points = coordinate
                             obj = {
+                                "classId": class_id,
+                                "className": class_name,
+                                "classValues": classValues,
                                 "contour": {
-                                    "center3D": box_data['center3D'],
-                                    "rotation3D": box_data['rotation3D'],
-                                    "size3D": box_data['size3D']
+                                    "points": points
                                 },
+                                "createdAt": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                                "createdBy": team_id,
+                                "id": box_data['frontId'],
                                 "meta": {
-                                    "annotateType": "3D_LABEL",
-                                    "resultStatus": "True_value",
-                                    "resultType": "",
-                                    "valid": 'UNKNOWN'
+                                    "color": box_data['color'],
+                                    "lastTime": None,
+                                    "sourceId": dataset_result_id,
+                                    "sourceType": "EXTERNAL_GROUND_TRUTH",
+                                    "updateTime": None,
+                                    "version": 1.0,
+                                    "classType": class_name,
                                 },
                                 "modelClass": box_data['modelClass'],
                                 "modelConfidence": None,
-                                "type": obj_type_mapping[box_data['objType']],
+                                "trackId": 1,
+                                "trackName": 1,
+                                "type": obj_t.upper(),
                                 "version": 1.0
                             }
                             objects.append(obj)
-                    else:  # 图片标注
-                        class_name = box_data['classType']
-                        if not class_name:
-                            class_id = ''
-                        elif class_name not in class_name_id_mapping.keys():
-                            class_id = ''
-                        else:
-                            class_id = class_name_id_mapping[class_name]
-                        class_ids.append(class_id)
-                        attrs = box_data['attrs']
-                        if not attrs:
-                            classValues = []
-                        else:
-                            classValues = []
-                            for att_k, att_v in attrs.items():
-                                class_value = {
-                                    "id": name_attr_mapping[class_name][att_k],
-                                    "pid": None,
-                                    "pvalue": None,
-                                    "name": att_k,
-                                    "type": "RADIO",
-                                    "value": att_v,
-                                    "alias": "",
-                                    "isLeaf": True
-                                }
-                                classValues.append(class_value)
-                        obj_t = box_data['objType']
-                        coordinate = box_data['coordinate']
-                        x_l = []
-                        y_l = []
-                        for point in coordinate:
-                            x_l.append(point['x'])
-                            y_l.append(point['y'])
-                        if obj_t == 'rectangle':
-                            points = [{"x": min(x_l), "y": min(y_l)},
-                                      {"x": max(x_l), "y": max(y_l)}]
-                        else:
-                            points = coordinate
-                        obj = {
-                            "classId": class_id,
-                            "className": class_name,
-                            "classValues": classValues,
-                            "contour": {
-                                "points": points
-                            },
-                            "createdAt": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                            "createdBy": team_id,
-                            "id": box_data['frontId'],
-                            "meta": {
-                                "color": box_data['color'],
-                                "lastTime": None,
-                                "sourceId": dataset_result_id,
-                                "sourceType": "EXTERNAL_GROUND_TRUTH",
-                                "updateTime": None,
-                                "version": 1.0,
-                                "classType": class_name,
-                            },
-                            "modelClass": box_data['modelClass'],
-                            "modelConfidence": None,
-                            "trackId": 1,
-                            "trackName": 1,
-                            "type": obj_t.upper(),
-                            "version": 1.0
-                        }
-                        objects.append(obj)
+                    except:
+                        continue
 
                 d_team_id.append(team_id)
                 d_dataset_id.append(dataset_id)
@@ -434,9 +440,12 @@ def main(team_id):
             class_atts = json.loads(x['attributes'])
             attr_id_mapping = {}
             for att in class_atts:
-                name = att['name']
-                id = att['id']
-                attr_id_mapping[name] = id
+                try:
+                    name = att['name']
+                    id = att['id']
+                    attr_id_mapping[name] = id
+                except:
+                    continue
             name_attr_mapping[class_name] = attr_id_mapping
         # for data_id in tqdm(data_ids, desc=f"{dataset_id}"):
         trans_3D_data(data_ids=data_ids, dataset_id=dataset_id, team_id=team_id,
