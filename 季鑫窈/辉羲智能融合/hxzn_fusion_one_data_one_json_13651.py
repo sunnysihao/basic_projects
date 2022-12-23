@@ -107,12 +107,13 @@ def update_json(json_dir: str, check_file: str):
                                     nk = nk
                                 if attr_k == 'VUR':
                                     new_attrs['VRU'] = attr_v
+                                elif attr_v == '本车道':
+                                    new_attrs[attr_k] = '0'
+                                elif attr_v == '对向车道':
+                                    new_attrs[attr_k] = '1'
                                 else:
                                     new_attrs[attr_k] = attr_v
-                                if attr_v == '本车道':
-                                    new_attrs[attr_k] = '0'
-                                else:
-                                    new_attrs[attr_k] = '1'
+
                             if nk:
                                 box['attrs'] = new_attrs
                                 box_data.append(box)
@@ -125,7 +126,35 @@ def update_json(json_dir: str, check_file: str):
                         miss_attr.append(attr_err)
                         continue
                 else:
-                    box_data.append(box)
+                    if attrs:
+                        new_attrs = {}
+                        nk = False
+                        need_key = ['车辆', 'VUR', 'VRU', '附属物', '静态障碍物']
+                        for attr_k, attr_v in attrs.items():
+                            if attr_k in need_key:
+                               nk = True
+                            else:
+                                nk = nk
+                            if attr_k == 'VUR':
+                                new_attrs['VRU'] = attr_v
+                            elif attr_v == '本车道':
+                                new_attrs[attr_k] = '0'
+                            elif attr_v == '对向车道':
+                                new_attrs[attr_k] = '1'
+                            else:
+                                new_attrs[attr_k] = attr_v
+
+                        if nk:
+                            box['attrs'] = new_attrs
+                            box_data.append(box)
+                        else:
+                            attr_err = f"作业ID:{data_id} - 第{frame_number}帧 - {int_id}号框缺少属性"
+                            miss_attr.append(attr_err)
+                            continue
+                    else:
+                        attr_err = f"作业ID:{data_id} - 第{frame_number}帧 - {int_id}号框缺少属性"
+                        miss_attr.append(attr_err)
+                        continue
 
         result = {
             "data": box_data,
@@ -167,6 +196,6 @@ if __name__ == '__main__':
     json_dir = args.json_dir
     check_file = args.check_file
 
-    # json_dir = r"C:\Users\Administrator\Downloads\下载结果_json_45009_113890_20221216171655"
-    # check_file = r"C:\Users\Administrator\Downloads\下载结果_json_45009_113890_20221216171655\check file.json"
+    # json_dir = r"C:\Users\EDY\Downloads\下载结果_json_45210_114668_20221223175018"
+    # check_file = r"C:\Users\EDY\Downloads\下载结果_json_45210_114668_20221223175018\check file.json"
     update_json(json_dir, check_file)
