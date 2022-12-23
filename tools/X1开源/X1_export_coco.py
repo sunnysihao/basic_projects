@@ -1,15 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-Script to convert Xtreme standard format to coco format for Xtreme V0.55 image annotation
+Script to convert Xtreme standard format to coco format for Xtreme V0.5.5 image annotation
+setup: pip install numpy opencv-python tqdm
+usage: python X1_export_coco.py <zipfile> <save folder>
 """
 import os
-from os.path import join, basename, dirname, splitext, exists
 import json
 import zipfile
 import cv2
 import numpy as np
+import shutil
 from tqdm import tqdm
 from datetime import datetime
+from os.path import join, basename, dirname, splitext, exists
 
 
 def list_files(in_path: str, match: str):
@@ -28,7 +31,7 @@ def load_json(json_file: str):
     return json_content
 
 
-def unzip_file(zip_src, dst_dir):
+def unzip_file(zip_src: str, dst_dir: str):
     r = zipfile.is_zipfile(zip_src)
     if r:
         fz = zipfile.ZipFile(zip_src, 'r')
@@ -38,20 +41,19 @@ def unzip_file(zip_src, dst_dir):
         print('This is not zip')
 
 
-def coco_converter(dst_dir: str):
+def coco_converter(dst_dir: str, dataset_name: str):
     result_path = join(dst_dir, os.listdir(dst_dir)[0], 'result')
     data_path = join(dst_dir, os.listdir(dst_dir)[0], 'data')
-    export_path = join(dst_dir, os.listdir(dst_dir)[0], 'coco_result')
+    export_path = join(dst_dir, f'x1 dataset {dataset_name} annotations')
     if not exists(export_path):
         os.mkdir(export_path)
     images = []
     annotation = []
     categorys = []
     category_mapping = {}
-
     img_id = 0
-    box_id = 0
-    cat_id = 1
+    object_id = 0
+    category_id = 1
     for file in tqdm(list_files(result_path, '.json'), desc='progress'):
         file_name = basename(file)
         data_file = join(data_path, file_name)
@@ -59,23 +61,21 @@ def coco_converter(dst_dir: str):
         data_content = load_json(data_file)
         img_width = data_content['width']
         img_height = data_content['height']
-
         img_url = data_content['imageUrl']
-
         for result in result_content:
             objects = result['objects']
             for obj in objects:
                 class_name = obj['className']
                 if class_name not in category_mapping.keys():
-                    category_mapping[class_name] = cat_id
+                    category_mapping[class_name] = category_id
                     category = {
-                        "id": cat_id,
+                        "id": category_id,
                         "name": class_name,
                         "supercategory": "",
                         "attributes": {}
                     }
                     categorys.append(category)
-                    cat_id += 1
+                    category_id += 1
                 score = obj['modelConfidence']
                 tool_type = obj['type']
                 if tool_type == 'RECTANGLE':
@@ -94,7 +94,7 @@ def coco_converter(dst_dir: str):
                     for cv in class_values:
                         attributes[cv['name']] = cv['value']
                     anno = {
-                        "id": box_id,
+                        "id": object_id,
                         "image_id": img_id,
                         "category_id": category_mapping[class_name],
                         "segmentation": [],
@@ -105,7 +105,7 @@ def coco_converter(dst_dir: str):
                         "attributes": attributes
                     }
                     annotation.append(anno)
-                    box_id += 1
+                    object_id += 1
                 elif tool_type == 'POLYGON':
                     segmentation = []
                     coordinate = []
@@ -122,7 +122,7 @@ def coco_converter(dst_dir: str):
                     for cv in class_values:
                         attributes[cv['name']] = cv['value']
                     anno = {
-                        "id": box_id,
+                        "id": object_id,
                         "image_id": img_id,
                         "category_id": category_mapping[class_name],
                         "segmentation": segmentation,
@@ -133,7 +133,7 @@ def coco_converter(dst_dir: str):
                         "attributes": attributes
                     }
                     annotation.append(anno)
-                    box_id += 1
+                    object_id += 1
                 elif tool_type == 'POLYLINE':
                     keypoints = []
                     points = obj['contour']['points']
@@ -147,7 +147,7 @@ def coco_converter(dst_dir: str):
                     for cv in class_values:
                         attributes[cv['name']] = cv['value']
                     anno = {
-                        "id": box_id,
+                        "id": object_id,
                         "image_id": img_id,
                         "category_id": category_mapping[class_name],
                         "segmentation": [],
@@ -158,7 +158,7 @@ def coco_converter(dst_dir: str):
                         "iscrowd": 0
                     }
                     annotation.append(anno)
-                    box_id += 1
+                    object_id += 1
 
         one_image = {
                 "id": img_id,
@@ -174,10 +174,11 @@ def coco_converter(dst_dir: str):
 
     info = {
         "contributor": "",
-        "date_created": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        "description": 'Basic AI Xtreme1 dataset datasetname exported to COCO format (https://github.com/basicai/xtreme1)',
+        "date_created": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "description":
+            f'Basic AI Xtreme1 dataset {dataset_name} exported to COCO format (https://github.com/basicai/xtreme1)',
         "url": "https://github.com/basicai/xtreme1",
-        "year": datetime.today().year,
+        "year": datetime.utcnow().year,
         "version": "0.5.5",
     }
 
@@ -191,11 +192,14 @@ def coco_converter(dst_dir: str):
     save_json = join(export_path, 'coco_results.json')
     with open(save_json, 'w', encoding='utf-8') as jf:
         json.dump(final_json, jf, indent=1, ensure_ascii=False)
+    shutil.rmtree(dirname(result_path))
+    print(f"*** coco format results have been saved in {save_json} ***")
 
 
 def main(zip_src: str, dst_dir: str):
+    dataset_name = splitext(basename(zip_src))[0].split('-')[0]
     unzip_file(zip_src, dst_dir)
-    coco_converter(dst_dir)
+    coco_converter(dst_dir, dataset_name)
 
 
 if __name__ == '__main__':
@@ -203,7 +207,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('zip_src', type=str, help='The path of the zip file')
-    parser.add_argument('dst_dir', type=str, help='The export folder')
+    parser.add_argument('dst_dir', type=str, help='The save folder')
     args = parser.parse_args()
 
     zip_src = args.zip_src
@@ -211,3 +215,4 @@ if __name__ == '__main__':
     # zip_src = r"C:\Users\EDY\Downloads\t1024-20221222083506.zip"
     # dst_dir = r"C:\Users\EDY\Downloads\output"
     main(zip_src, dst_dir)
+    input("Complete, press any key to exit")
