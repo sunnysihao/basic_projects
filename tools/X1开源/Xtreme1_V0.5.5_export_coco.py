@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Script to convert Xtreme standard format to coco format for Xtreme V0.5.5 image annotation
+Script to convert Xtreme1 standard format to coco format for Xtreme1 V0.5.5 image annotation
 setup: pip install numpy opencv-python tqdm
-usage: python X1_export_coco.py <zipfile> <save folder>
+usage: python Xtreme1_V0.5.5_export_coco.py <zipfile> <save folder>
 """
 import os
 import json
@@ -55,15 +55,15 @@ def coco_converter(dst_dir: str, dataset_name: str):
     object_id = 0
     category_id = 1
     for file in tqdm(list_files(result_path, '.json'), desc='progress'):
-        file_name = basename(file)
-        data_file = join(data_path, file_name)
-        result_content = load_json(file)
-        data_content = load_json(data_file)
-        img_width = data_content['width']
-        img_height = data_content['height']
-        img_url = data_content['imageUrl']
-        for result in result_content:
-            objects = result['objects']
+        try:
+            file_name = basename(file)
+            data_file = join(data_path, file_name)
+            result_content = load_json(file)
+            data_content = load_json(data_file)
+            img_width = data_content['width']
+            img_height = data_content['height']
+            img_url = data_content['imageUrl']
+            objects = result_content['objects']
             for obj in objects:
                 class_name = obj['className']
                 if class_name not in category_mapping.keys():
@@ -160,17 +160,19 @@ def coco_converter(dst_dir: str, dataset_name: str):
                     annotation.append(anno)
                     object_id += 1
 
-        one_image = {
-                "id": img_id,
-                "license": 0,
-                "file_name": img_url.split('/')[-1],
-                "xtreme1_url": "",
-                "width": img_width,
-                "height": img_height,
-                "date_captured": None
-        }
-        images.append(one_image)
-        img_id += 1
+            one_image = {
+                    "id": img_id,
+                    "license": 0,
+                    "file_name": img_url.split('?')[0].split('/')[-1],
+                    "xtreme1_url": img_url,
+                    "width": img_width,
+                    "height": img_height,
+                    "date_captured": None
+            }
+            images.append(one_image)
+            img_id += 1
+        except Exception:
+            continue
 
     info = {
         "contributor": "",
@@ -178,8 +180,8 @@ def coco_converter(dst_dir: str, dataset_name: str):
         "description":
             f'Basic AI Xtreme1 dataset {dataset_name} exported to COCO format (https://github.com/basicai/xtreme1)',
         "url": "https://github.com/basicai/xtreme1",
-        "year": datetime.utcnow().year,
-        "version": "0.5.5",
+        "year": f"{datetime.utcnow().year}",
+        "version": "Basic AI V1.0",
     }
 
     final_json = {
@@ -212,7 +214,14 @@ if __name__ == '__main__':
 
     zip_src = args.zip_src
     dst_dir = args.dst_dir
-    # zip_src = r"C:\Users\EDY\Downloads\t1024-20221222083506.zip"
+    # zip_src = r"C:\Users\EDY\Downloads\修改图片-20221226031046.zip"
     # dst_dir = r"C:\Users\EDY\Downloads\output"
-    main(zip_src, dst_dir)
-    input("Complete, press any key to exit")
+    if len(os.listdir(dst_dir)):
+        input("The save folder needs to be empty, press any key to exit")
+    else:
+        main(zip_src, dst_dir)
+        input("Complete, press any key to exit")
+
+
+
+

@@ -175,14 +175,14 @@ def update_json(json_dir: str, check_file: str):
     }
     if not os.path.exists(check_file):
         with open(check_file, 'w', encoding='utf-8') as df:
-            df.write(json.dumps(detection_info, indent=1))
+            df.write(json.dumps(detection_info, indent=1, ensure_ascii=False))
     else:
         with open(check_file, 'r', encoding='utf-8-sig') as f:
             content = f.read()
             detection_content = json.loads(content)
             detection_content['detection_info'] = detection_info
             with open(check_file, 'w', encoding='utf-8') as df:
-                df.write(json.dumps(detection_content, indent=1))
+                df.write(json.dumps(detection_content, indent=1, ensure_ascii=False))
 
 
 if __name__ == '__main__':
