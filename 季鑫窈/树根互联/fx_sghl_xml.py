@@ -29,11 +29,11 @@ def list_files(in_path: str, match):
 
 def parse_xml(xml_file):
     #获取xml文件
-    xml_file = open(xml_file, 'r')
+    with open(xml_file, 'r', encoding='utf-8') as xf:
     #读取xml文件内容
-    xml_str = xml_file.read()
+        xml_str = xf.read()
     #将读取的xml内容转为json
-    json = xmltodict.parse(xml_str)
+        json = xmltodict.parse(xml_str)
     return json['annotation']
 
 
@@ -43,18 +43,94 @@ def parse_result(xml_file, image_file):
     iw, ih = Image.open(image_file).size
     result_data = []
     int_id = 1
-    boxes = content['object']
-    if type(boxes) == list:
-        for box in boxes:
+    try:
+        boxes = content['object']
+        if type(boxes) == list:
+            for box in boxes:
+                label = box['name']
+                if label == 'cycle':
+                    code = '摩托车/电动车'
+                else:
+                    code = label
+                coor = box['bndbox']
+                x = float(coor['xmin'])
+                y = float(coor['ymin'])
+                x1 =float(coor['xmax'])
+                y1 =float(coor['ymax'])
+                w = x1-x
+                h = y1-y
+                box_id = str(uuid.uuid3(uuid.NAMESPACE_DNS, file_name + str(int_id)))
+                box = {
+                    "type": 'rect',
+                    "id": box_id,
+                    "color": "",
+                    "label": [label],
+                    "code": [code],
+                    "category": [label],
+                    "catetips": [code],
+                    "label_id": [],
+                    "text": "",
+                    "labelAttrs": [],
+                    "width": w,
+                    "height": h,
+                    "area": w*h,
+                    "intId": int_id,
+                    "points": [
+                        {
+                            "x": x/iw,
+                            "y": y/ih
+                        },
+                        {
+                            "x": x1/iw,
+                            "y": y/ih,
+                        },
+                        {
+                            "x": x1/iw,
+                            "y": y1/ih
+                        },
+                        {
+                            "x": x/iw,
+                            "y": y1/ih
+                        }
+                    ],
+                    "coordinate": [
+                        {
+                          "x": x,
+                          "y": y
+                        },
+                        {
+                          "x": x1,
+                          "y": y
+                        },
+                        {
+                          "x": x1,
+                          "y": y1
+                        },
+                        {
+                          "x": x,
+                          "y": y1
+                        }
+                    ],
+                    "ih": iw,
+                    "iw": ih
+                }
+                result_data.append(box)
+                int_id += 1
+        # 当只有一条结果的时候 boxes是字典
+        else:
+            box = boxes
             label = box['name']
-            code = label_cate_mapping[label]
+            if label == 'cycle':
+                code = '摩托车/电动车'
+            else:
+                code = label
             coor = box['bndbox']
             x = float(coor['xmin'])
             y = float(coor['ymin'])
-            x1 =float(coor['xmax'])
-            y1 =float(coor['ymax'])
-            w = x1-x
-            h = y1-y
+            x1 = float(coor['xmax'])
+            y1 = float(coor['ymax'])
+            w = x1 - x
+            h = y1 - y
             box_id = str(uuid.uuid3(uuid.NAMESPACE_DNS, file_name + str(int_id)))
             box = {
                 "type": 'rect',
@@ -69,42 +145,42 @@ def parse_result(xml_file, image_file):
                 "labelAttrs": [],
                 "width": w,
                 "height": h,
-                "area": w*h,
+                "area": w * h,
                 "intId": int_id,
                 "points": [
                     {
-                        "x": x/iw,
-                        "y": y/ih
+                        "x": x / iw,
+                        "y": y / ih
                     },
                     {
-                        "x": x1/iw,
-                        "y": y/ih,
+                        "x": x1 / iw,
+                        "y": y / ih,
                     },
                     {
-                        "x": x1/iw,
-                        "y": y1/ih
+                        "x": x1 / iw,
+                        "y": y1 / ih
                     },
                     {
-                        "x": x/iw,
-                        "y": y1/ih
+                        "x": x / iw,
+                        "y": y1 / ih
                     }
                 ],
                 "coordinate": [
                     {
-                      "x": x,
-                      "y": y
+                        "x": x,
+                        "y": y
                     },
                     {
-                      "x": x1,
-                      "y": y
+                        "x": x1,
+                        "y": y
                     },
                     {
-                      "x": x1,
-                      "y": y1
+                        "x": x1,
+                        "y": y1
                     },
                     {
-                      "x": x,
-                      "y": y1
+                        "x": x,
+                        "y": y1
                     }
                 ],
                 "ih": iw,
@@ -112,92 +188,25 @@ def parse_result(xml_file, image_file):
             }
             result_data.append(box)
             int_id += 1
-    # 当只有一条结果的时候 boxes是字典
-    else:
-        box = boxes
-        label = box['name']
-        code = label_cate_mapping[label]
-        coor = box['bndbox']
-        x = float(coor['xmin'])
-        y = float(coor['ymin'])
-        x1 = float(coor['xmax'])
-        y1 = float(coor['ymax'])
-        w = x1 - x
-        h = y1 - y
-        box_id = str(uuid.uuid3(uuid.NAMESPACE_DNS, file_name + str(int_id)))
-        box = {
-            "type": 'rect',
-            "id": box_id,
-            "color": "",
-            "label": [label],
-            "code": [code],
-            "category": [label],
-            "catetips": [code],
-            "label_id": [],
-            "text": "",
-            "labelAttrs": [],
-            "width": w,
-            "height": h,
-            "area": w * h,
-            "intId": int_id,
-            "points": [
-                {
-                    "x": x / iw,
-                    "y": y / ih
-                },
-                {
-                    "x": x1 / iw,
-                    "y": y / ih,
-                },
-                {
-                    "x": x1 / iw,
-                    "y": y1 / ih
-                },
-                {
-                    "x": x / iw,
-                    "y": y1 / ih
-                }
-            ],
-            "coordinate": [
-                {
-                    "x": x,
-                    "y": y
-                },
-                {
-                    "x": x1,
-                    "y": y
-                },
-                {
-                    "x": x1,
-                    "y": y1
-                },
-                {
-                    "x": x,
-                    "y": y1
-                }
-            ],
-            "ih": iw,
-            "iw": ih
-        }
-        result_data.append(box)
-        int_id += 1
 
-    data = {
-        "data": {
-            "image_url": file_name
-        },
-        "result": {
-            "data": result_data,
-            "groupinfo": [],
-            "resourceinfo": {
-                "width": iw,
-                "height": ih,
-                "rotation": 0
+        data = {
+            "data": {
+                "image_url": file_name
             },
-            "data_deleted_file": ""
+            "result": {
+                "data": result_data,
+                "groupinfo": [],
+                "resourceinfo": {
+                    "width": iw,
+                    "height": ih,
+                    "rotation": 0
+                },
+                "data_deleted_file": ""
+            }
         }
-    }
-    return data
+        return data
+    except Exception:
+        print(content)
 
 
 def main(total_path):
@@ -216,9 +225,9 @@ def main(total_path):
 
 
 def main2(total_path):
-    for img_file in tqdm(list_files(total_path, '.png')):
-        xml_file = img_file.replace('.png', '.xml')
-        exc_json = img_file.replace('.png', '.json')
+    for img_file in tqdm(list_files(total_path, '.jpg')):
+        xml_file = img_file.replace('JPEGImages', 'Annotations').replace('.jpg', '.xml')
+        exc_json = img_file.replace('.jpg', '.json')
         if not os.path.exists(xml_file):
             print(f"{xml_file}不存在")
         else:

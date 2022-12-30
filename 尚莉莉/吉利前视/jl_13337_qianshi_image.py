@@ -95,7 +95,10 @@ def jl_output(json_dir: str, check_file: str):
 
         for box in boxes:
             box_id = box['id']
-            int_id = box['intId']
+            try:
+                int_id = box['intId']
+            except Exception:
+                int_id = 0
             box_type = box['type']
             frame = box['frame'] + 1
             if box_type == 'bonepoint':
@@ -563,7 +566,7 @@ if __name__ == '__main__':
     json_dir = args.json_dir
     check_file = args.check_file
 
-    # json_dir = r"C:\Users\EDY\Downloads\json_44361_111480_20221118141144\馆陶没做的 - 副本"
-    # check_file = r"C:\Users\EDY\Downloads\json_44361_111480_20221118141144\馆陶没做的 - 副本\check file.json"
+    # json_dir = r"C:\Users\EDY\Downloads\json_44312_111311,111312_20221230174040\拆分批次-停车场1和停车场2 - 副本"
+    # check_file = r"C:\Users\EDY\Downloads\json_44312_111311,111312_20221230174040\拆分批次-停车场1和停车场2 - 副本\check file.json"
     jl_output(json_dir, check_file)
     # print(count_m(json_dir))
