@@ -7,6 +7,8 @@ import json
 import os
 import numpy as np
 import numpy.linalg as la
+from tqdm import tqdm
+import shutil
 
 with open(r'D:\Desktop\Project_file\张子千\audi\a2d2-preview\cams_lidars.json', 'r') as f:
     config = json.load(f)
@@ -85,7 +87,7 @@ def parse_points(file, ext):
     point = datas['pcloud_points']
     one = np.ones(len(point))
     points = np.hstack((point, one.reshape((-1, 1)))) @ ext.T
-    return np.hstack((points[:, 0:3]), i.reshape((-1, 1)))
+    return np.hstack(((points[:, 0:3]), i.reshape(-1, 1)))
 
 
 def parse_ext(file):
@@ -117,24 +119,39 @@ def write_pcd(points, file):
             pcd_file.write(string_point)
 
 
-def main(o_dir):
+def main(o_dir, save_dir):
+    merge_pc_dir = os.path.join(save_dir, 'point_cloud')
+    if not os.path.exists(merge_pc_dir):
+        os.mkdir(merge_pc_dir)
     lidar_dir = os.path.join(o_dir, 'lidar')
     camera_dir = os.path.join(o_dir, 'camera')
     dirs = os.listdir(lidar_dir)
-    files = list_files(os.path.join(lidar_dir, lidar_dirs[0]), '.npz')
-    for file in files:
-        file_name = os.path.splitext(os.path.basename(file))[0]
-        ext_json_file = os.path.join()
-    for d in range(6):
-        files = list_files(os.path.join(lidar_dir, lidar_dirs[d]), '.npz')
 
-        ext_json = files[]
+    file_nums = list_files(os.path.join(lidar_dir, dirs[0]), '.npz')
+    for i in tqdm(range(len(file_nums))):
+        name = os.path.splitext(os.path.basename(file_nums[i]))[0].split('_')
+        save_name = '_'.join([name[0], name[-1]])
+        pcd_file = os.path.join(merge_pc_dir, save_name + '.pcd')
         points = np.array([[0, 0, 0, 1]])
-        for i in range(5):
-            datas = np.load(files[i])
-            lidar = config['lidars'][views[i]]['view']
-            ext = get_transform_to_global(lidar)
-            point = parse_points(datas, ext)
-            points = np.around(np.vstack((points, point)), 3)
-            write_pcd(points)
+        for _dir in dirs:
+            files = list_files(os.path.join(lidar_dir, _dir), '.npz')
 
+            file_name = os.path.splitext(os.path.basename(files[i]))[0]
+            lidar_file = os.path.join(lidar_dir, _dir, file_name + '.npz')
+            ext_file = os.path.join(camera_dir, _dir, file_name.replace('lidar', 'camera') + '.json')
+            o_img_file = os.path.join(camera_dir, _dir, file_name.replace('lidar', 'camera') + '.png')
+            new_img_dir = os.path.join(save_dir, f"image{dirs.index(_dir)}")
+            if not os.path.exists(new_img_dir):
+                os.mkdir(new_img_dir)
+            new_img_file = os.path.join(new_img_dir, save_name + '.png')
+            shutil.copyfile(o_img_file, new_img_file)
+            ext = parse_ext(ext_file)
+            pc = parse_points(lidar_file, ext)
+            points = np.around(np.vstack((points, pc)), 3)
+        write_pcd(points, pcd_file)
+
+
+if __name__ == '__main__':
+   o_dir = r"D:\Desktop\Project_file\张子千\audi\a2d2-preview\camera_lidar\20180810_150607"
+   save_dir = r"D:\Desktop\Project_file\张子千\audi\a2d2-preview\camera_lidar\20180810_150607\upload_files"
+   main(o_dir, save_dir)

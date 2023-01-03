@@ -24,7 +24,10 @@ color_mapping = {
     "pedestrian_sitting": "#48d1cc",
     "pedestrian_standing": "#0000cd",
     "cyclist": "#ba55d3",
-    "baby_carriage": "#c71585"
+    "baby_carriage": "#c71585",
+    "vehicle_occluded": '#EA1A1A',
+    "pedestrian_wheelchair": '#5D4037',
+    "pedestrian_scooter": '#0D94AA'
 }
 
 def json_format(json_dir):
