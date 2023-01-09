@@ -224,10 +224,10 @@ def main(total_path):
                 json.dump(data, f, ensure_ascii=False)
 
 
-def main2(total_path):
-    for img_file in tqdm(list_files(total_path, '.jpg')):
-        xml_file = img_file.replace('JPEGImages', 'Annotations').replace('.jpg', '.xml')
-        exc_json = img_file.replace('.jpg', '.json')
+def main2(total_path, suffix_match):
+    for img_file in tqdm(list_files(total_path, suffix_match)):
+        xml_file = img_file.replace('JPEGImages', 'Annotations').replace(suffix_match, '.xml')
+        exc_json = img_file.replace(suffix_match, '.json')
         if not os.path.exists(xml_file):
             print(f"{xml_file}不存在")
         else:
@@ -237,10 +237,15 @@ def main2(total_path):
 
 
 if __name__ == '__main__':
-    import argparse
-    parser = argparse.ArgumentParser(description='arg parser')
-    parser.add_argument('total_dir', type=str, help='total directory')
-    args = parser.parse_args()
-    total_path = args.total_dir
+    # import argparse
+    # parser = argparse.ArgumentParser(description='arg parser')
+    # parser.add_argument('total_dir', type=str, help='total directory')
+    # parser.add_argument('suffix_match', type=str, help='total directory')
+    # args = parser.parse_args()
+    # total_path = args.total_dir
+    # suffix_match = args.suffix_match
     # total_path = r"D:\Desktop\Project_file\季鑫窈\测试\测试"
-    main2(total_path)
+
+    total_path = input("请输入文件夹路径:\n")
+    suffix_match = input("请输入图片格式(例如:.jpg/.png):\n")
+    main2(total_path, suffix_match)
