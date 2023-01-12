@@ -249,3 +249,4 @@ if __name__ == '__main__':
     total_path = input("请输入文件夹路径:\n")
     suffix_match = input("请输入图片格式(例如:.jpg/.png):\n")
     main2(total_path, suffix_match)
+    input("已完成")
